@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Enumeration Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-shield-alt"></i> Box Enumeration Dashboard</h1>
+            <p>Advanced Security Scanning & Enumeration Tool</p>
+        </header>
+
+        <main>
+            <section class="scan-form">
+                <form id="scan-form">
+                    <div class="form-group">
+                        <label for="ip_address">Target IP Address:</label>
+                        <div class="input-group">
+                            <input type="text" id="ip_address" name="ip_address" class="form-control" 
+                                   placeholder="Enter target IP address" required
+                                   data-tooltip="Enter the IP address of the target system">
+                            <i class="fas fa-info-circle help-icon" data-tooltip="IPv4 address format: xxx.xxx.xxx.xxx"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="wordlist">Gobuster Wordlist Path (Optional):</label>
+                        <div class="input-group">
+                            <input type="text" id="wordlist" name="wordlist" class="form-control"
+                                   placeholder="/usr/share/wordlists/dirb/small.txt"
+                                   data-tooltip="Leave empty to use default wordlist">
+                            <i class="fas fa-info-circle help-icon" data-tooltip="Default: /usr/share/wordlists/dirb/small.txt"></i>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn" id="scan-button">
+                        <i class="fas fa-play"></i> Start Scan
+                        <span class="loading-spinner" style="display: none;"></span>
+                    </button>
+                </form>
+            </section>
+
+            <section class="status-section">
+                <h2>Scan Status for <span id="target-ip">N/A</span></h2>
+                <div class="status-container">
+                    <div class="status-card" data-tool="nmap">
+                        <h3><i class="fas fa-network-wired"></i> Nmap Scan</h3>
+                        <div id="nmap-status" class="status idle">Nmap: idle</div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" id="nmap-progress"></div>
+                        </div>
+                        <div class="tool-info collapsible">
+                            <i class="fas fa-chevron-down"></i> More Info
+                        </div>
+                        <div class="collapsible-content">
+                            <p>Nmap performs port scanning and service detection</p>
+                        </div>
+                    </div>
+
+                    <div class="status-card" data-tool="dirb">
+                        <h3><i class="fas fa-folder-tree"></i> Dirb Scan</h3>
+                        <div id="dirb-status" class="status idle">Dirb: idle</div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" id="dirb-progress"></div>
+                        </div>
+                        <div class="tool-info collapsible">
+                            <i class="fas fa-chevron-down"></i> More Info
+                        </div>
+                        <div class="collapsible-content">
+                            <p>Dirb performs web content discovery and enumeration</p>
+                        </div>
+                    </div>
+
+                    <div class="status-card" data-tool="gobuster">
+                        <h3><i class="fas fa-search"></i> Gobuster Scan</h3>
+                        <div id="gobuster-status" class="status idle">Gobuster: idle</div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" id="gobuster-progress"></div>
+                        </div>
+                        <div class="tool-info collapsible">
+                            <i class="fas fa-chevron-down"></i> More Info
+                        </div>
+                        <div class="collapsible-content">
+                            <p>Gobuster performs directory and file brute forcing</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="error-log" class="error-log" style="display: none;"></div>
+            </section>
+
+            <section class="results-section">
+                <h2><i class="fas fa-clipboard-list"></i> Scan Results</h2>
+                <div class="results-controls">
+                    <button class="btn btn-sm" id="refresh-results">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <ul class="results-list">
+                    <li class="result-item" data-tool="nmap">
+                        <div class="result-header" onclick="toggleResultContent(this)">
+                            <strong><i class="fas fa-network-wired"></i> Nmap Results:</strong>
+                            <span id="nmap-result">N/A</span>
+                            <span class="status-badge idle">Idle</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="result-content">
+                            <pre id="nmap-output" class="scan-output">No results available</pre>
+                            <button class="btn btn-sm export-btn" onclick="exportResults('nmap')">
+                                <i class="fas fa-download"></i> Export Nmap Results
+                            </button>
+                        </div>
+                    </li>
+                    <li class="result-item" data-tool="dirb">
+                        <div class="result-header" onclick="toggleResultContent(this)">
+                            <strong><i class="fas fa-folder-tree"></i> Dirb Results:</strong>
+                            <span id="dirb-result">N/A</span>
+                            <span class="status-badge idle">Idle</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="result-content">
+                            <pre id="dirb-output" class="scan-output">No results available</pre>
+                            <button class="btn btn-sm export-btn" onclick="exportResults('dirb')">
+                                <i class="fas fa-download"></i> Export Dirb Results
+                            </button>
+                        </div>
+                    </li>
+                    <li class="result-item" data-tool="gobuster">
+                        <div class="result-header" onclick="toggleResultContent(this)">
+                            <strong><i class="fas fa-search"></i> Gobuster Results:</strong>
+                            <span id="gobuster-result">N/A</span>
+                            <span class="status-badge idle">Idle</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="result-content">
+                            <pre id="gobuster-output" class="scan-output">No results available</pre>
+                            <button class="btn btn-sm export-btn" onclick="exportResults('gobuster')">
+                                <i class="fas fa-download"></i> Export Gobuster Results
+                            </button>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 Box Enumeration Tool. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#" data-tooltip="View Documentation"><i class="fas fa-book"></i></a>
+                <a href="#" data-tooltip="Report an Issue"><i class="fas fa-bug"></i></a>
+                <a href="#" data-tooltip="View Source"><i class="fas fa-code"></i></a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 

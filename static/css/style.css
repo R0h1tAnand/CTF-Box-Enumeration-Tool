@@ -1,0 +1,626 @@
+/* Modern CSS with enhanced styling */
+:root {
+    --primary-color: #2196F3;
+    --success-color: #4CAF50;
+    --warning-color: #FFC107;
+    --danger-color: #F44336;
+    --dark-color: #333;
+    --light-color: #f4f4f4;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    background: linear-gradient(135deg, var(--primary-color), #1976D2);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 300;
+}
+
+.scan-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin: 2rem 0;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.btn:hover {
+    background-color: #1976D2;
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.status-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.status-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    border: 1px solid #eee;
+    position: relative;
+    overflow: hidden;
+}
+
+.status-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.status-card.idle::before {
+    background-color: var(--light-color);
+}
+
+.status-card.running::before {
+    background-color: var(--primary-color);
+}
+
+.status-card.completed::before {
+    background-color: var(--success-color);
+}
+
+.status-card.failed::before {
+    background-color: var(--danger-color);
+}
+
+.status {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.idle {
+    background-color: var(--light-color);
+    color: var(--dark-color);
+}
+
+.running {
+    background-color: #E3F2FD;
+    color: var(--primary-color);
+    animation: pulse 2s infinite;
+}
+
+.completed {
+    background-color: #E8F5E9;
+    color: var(--success-color);
+}
+
+.failed {
+    background-color: #FFEBEE;
+    color: var(--danger-color);
+}
+
+.results-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.results-list {
+    list-style: none;
+    padding: 0;
+}
+
+.results-list li {
+    position: relative;
+    transition: background-color 0.3s;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.result-header {
+    padding: 1rem;
+    background: #f8f9fa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    user-select: none;
+}
+
+.result-header:hover {
+    background: #e9ecef;
+}
+
+.result-header i.fa-chevron-down {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+.result-header.active i.fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+.result-content {
+    display: none;
+    background: white;
+    padding: 0;
+    border-top: 1px solid #e0e0e0;
+}
+
+.result-content.active {
+    display: block;
+}
+
+.scan-output {
+    margin: 0;
+    padding: 1rem;
+    background: #2b2b2b;
+    color: #f8f9fa;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.export-btn {
+    margin: 1rem;
+    background-color: var(--success-color);
+}
+
+.export-btn:hover {
+    background-color: #388e3c;
+}
+
+.result-item .status-badge {
+    margin-left: auto;
+}
+
+.result-header strong {
+    min-width: 150px;
+}
+
+.result-header span:not(.status-badge) {
+    flex: 1;
+    margin-right: 1rem;
+}
+
+/* Loading animation for scan output */
+.scan-output.loading {
+    position: relative;
+    min-height: 100px;
+}
+
+.scan-output.loading::after {
+    content: "Loading results...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #666;
+}
+
+/* Scrollbar styling for scan output */
+.scan-output::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.scan-output::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.scan-output::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 4px;
+}
+
+.scan-output::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+
+/* Arrow icon rotation */
+.result-header .fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+
+.result-header.active .fa-chevron-down {
+    transform: rotate(180deg);
+}
+
+.error-log {
+    color: var(--danger-color);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--danger-color);
+    background-color: #FFEBEE;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(33, 150, 243, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(33, 150, 243, 0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .status-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 5px;
+    background: white;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    transform: translateX(120%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    background: var(--success-color);
+    color: white;
+}
+
+.notification.error {
+    background: var(--danger-color);
+    color: white;
+}
+
+.notification.info {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Interactive Status Cards */
+.status-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.status-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: var(--light-color);
+    transition: background-color 0.3s;
+}
+
+.status-card.running::before {
+    background: var(--primary-color);
+    animation: progress 2s ease-in-out infinite;
+}
+
+.status-card.completed::before {
+    background: var(--success-color);
+}
+
+.status-card.failed::before {
+    background: var(--danger-color);
+}
+
+@keyframes progress {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Tool Tips */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-5px);
+    padding: 5px 10px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    font-size: 0.8rem;
+    border-radius: 3px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+}
+
+[data-tooltip]:hover:before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+/* Interactive Form Elements */
+.form-control {
+    position: relative;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    transform: scale(1.01);
+}
+
+.btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255,255,255,0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%);
+    transform-origin: 50% 50%;
+}
+
+.btn:active::after {
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(20, 20);
+        opacity: 0;
+    }
+}
+
+/* Results Section Enhancement */
+.results-list li:hover {
+    background-color: #f8f9fa;
+}
+
+/* Remove the shifting arrow indicator */
+.results-list li::before {
+    display: none;
+}
+
+/* Progress Indicator */
+.progress-bar {
+    height: 4px;
+    width: 100%;
+    background-color: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+    width: 0;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.status-badge.idle { background-color: #e9ecef; }
+.status-badge.running { background-color: #cce5ff; }
+.status-badge.completed { background-color: #d4edda; }
+.status-badge.failed { background-color: #f8d7da; }
+
+/* Collapsible Sections */
+.collapsible {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.collapsible:hover {
+    background-color: rgba(33, 150, 243, 0.05);
+}
+
+.collapsible i {
+    transition: transform 0.3s;
+}
+
+.collapsible.active i {
+    transform: rotate(180deg);
+}
+
+.collapsible-content {
+    display: none;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid #eee;
+}
+
+.collapsible-content.expanded {
+    display: block;
+}
+
+.tool-info {
+    padding: 0.5rem;
+}
+
+.tool-info h3 {
+    color: var(--dark-color);
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.tool-description {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    margin: 0;
+    font-family: inherit;
+}
+
+.tool-description ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.tool-description li {
+    margin-bottom: 0.5rem;
+}
+
+.result-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.result-link:hover {
+    color: #1976D2;
+    text-decoration: underline;
+}
+
+/* Status-specific styling */
+.idle .status {
+    background-color: #f5f5f5;
+    color: #666;
+}
+
+.running .status {
+    background-color: #e3f2fd;
+    color: var(--primary-color);
+}
+
+.completed .status {
+    background-color: #e8f5e9;
+    color: var(--success-color);
+}
+
+.failed .status {
+    background-color: #ffebee;
+    color: var(--danger-color);
+} 
