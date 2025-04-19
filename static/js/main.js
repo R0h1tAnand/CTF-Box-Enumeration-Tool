@@ -459,6 +459,28 @@ async function fetchStatus() {
         ['nmap', 'dirb', 'gobuster'].forEach(tool => {
             if (status[tool]) {
                 updateSessionStatus(tool, status[tool]);
+                
+                // Update the progress bar and status for each tool
+                const progressBar = document.getElementById(`${tool}-progress`);
+                if (progressBar) {
+                    const progress = status[tool].progress || 0;
+                    progressBar.style.width = `${progress}%`;
+                    
+                    // Update the status text
+                    const statusBadge = document.querySelector(`[data-tool="${tool}"] .status-badge`);
+                    if (statusBadge) {
+                        if (status[tool].status === 'completed') {
+                            statusBadge.textContent = 'Completed';
+                            statusBadge.className = 'status-badge completed';
+                        } else if (status[tool].status === 'running') {
+                            statusBadge.textContent = `Running (${progress}%)`;
+                            statusBadge.className = 'status-badge running';
+                        } else if (status[tool].status === 'failed') {
+                            statusBadge.textContent = 'Failed';
+                            statusBadge.className = 'status-badge failed';
+                        }
+                    }
+                }
             }
         });
 
@@ -467,17 +489,15 @@ async function fetchStatus() {
             const statusElement = document.getElementById(`${tool}-status`);
             const resultSpan = document.getElementById(`${tool}-result`);
             
-            // Update tool status
             if (statusElement && status[tool]) {
                 updateStatusElement(statusElement, tool, status[tool]);
             }
             
-            // Update result link if available
             if (resultSpan && status[tool]) {
                 updateResultLink(resultSpan, status[tool]);
             }
             
-            // If the result content is visible, update it
+            // Update result content if visible
             const content = document.querySelector(`[data-tool="${tool}"] .result-content`);
             if (content && content.classList.contains('active')) {
                 fetchToolResults(tool);
@@ -496,6 +516,7 @@ async function fetchStatus() {
             clearInterval(intervalId);
             intervalId = null;
             showNotification('All selected scans completed!', 'success');
+            resetButtonStates();
         }
     } catch (error) {
         console.error("Error fetching status:", error);
@@ -507,26 +528,41 @@ function updateStatusElement(element, toolName, toolStatus) {
     if (!element) return;
     
     element.className = `status ${toolStatus.status}`;
-    let text = `${toolName}: ${toolStatus.status}`;
+    let statusText = '';
+    
     if (toolStatus.error) {
-        text += ` (Error: ${toolStatus.error})`;
+        statusText = `${toolName}: Error - ${toolStatus.error}`;
+        element.className += ' error';
+    } else if (toolStatus.status === 'completed') {
+        statusText = `${toolName}: Completed`;
+        element.className += ' completed';
     } else if (toolStatus.status === 'running') {
-        text += ` (${toolStatus.progress || 0}%)`;
+        const progress = toolStatus.progress || 0;
+        statusText = `${toolName}: Running (${progress}%)`;
+        element.className += ' running';
+    } else if (toolStatus.status === 'failed') {
+        statusText = `${toolName}: Failed`;
+        element.className += ' failed';
+    } else {
+        statusText = `${toolName}: ${toolStatus.status}`;
     }
-    element.textContent = text;
     
-    // Update the status badge
-    updateStatusBadge(toolName, toolStatus.status);
+    element.textContent = statusText;
     
-    // Update the status card with progress
+    // Update the status badge and progress bar
+    updateStatusBadge(toolName, toolStatus.status, toolStatus.progress);
     updateStatusCard(toolName, toolStatus.status, toolStatus.progress || 0);
 }
 
-function updateStatusBadge(toolName, status) {
+function updateStatusBadge(toolName, status, progress) {
     const badge = document.querySelector(`[data-tool="${toolName}"] .status-badge`);
     if (badge) {
         badge.className = `status-badge ${status}`;
-        badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        if (status === 'running') {
+            badge.textContent = `Running (${progress || 0}%)`;
+        } else {
+            badge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        }
     }
 }
 
@@ -767,13 +803,17 @@ toolCheckboxes.forEach(checkbox => {
 // Update status check to consider progress
 function isAllScansComplete(status) {
     const selectedTools = sessionData.selectedTools || [];
-    const finished = ['completed', 'failed'];
-    
-    return selectedTools.every(tool => 
-        status[tool] && 
-        (finished.includes(status[tool].status) || 
-        (status[tool].status === 'completed' && status[tool].progress === 100))
-    );
+    return selectedTools.every(tool => {
+        if (!status[tool]) return false;
+        
+        if (status[tool].status === 'completed') {
+            return status[tool].progress === 100;
+        } else if (status[tool].status === 'failed') {
+            return true;
+        }
+        
+        return false;
+    });
 }
 
 let scanInProgress = false;
