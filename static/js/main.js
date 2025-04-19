@@ -20,6 +20,16 @@ const themeIcon = themeToggle.querySelector('i');
 
 let intervalId = null;
 
+// Session Management
+let isScanning = false;
+let sessionData = {
+    targetIp: null,
+    wordlist: null,
+    toolStatuses: {},
+    results: {},
+    lastUpdate: null
+};
+
 // Theme Management
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -49,6 +59,7 @@ function toggleTheme() {
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
     initTheme();
+    loadSessionData();
     themeToggle.addEventListener('click', toggleTheme);
     
     form.addEventListener('submit', handleFormSubmit);
@@ -138,12 +149,103 @@ function updateStatusCard(toolName, status) {
     }
 }
 
+// Load session data on page load
+function loadSessionData() {
+    const savedData = localStorage.getItem('scanSessionData');
+    if (savedData) {
+        try {
+            sessionData = JSON.parse(savedData);
+            restoreUIFromSession();
+        } catch (error) {
+            console.error('Error loading session data:', error);
+            localStorage.removeItem('scanSessionData');
+        }
+    }
+}
+
+// Save session data
+function saveSessionData() {
+    sessionData.lastUpdate = new Date().toISOString();
+    localStorage.setItem('scanSessionData', JSON.stringify(sessionData));
+}
+
+// Restore UI from session data
+function restoreUIFromSession() {
+    if (sessionData.targetIp) {
+        ipInput.value = sessionData.targetIp;
+        targetIpSpan.textContent = sessionData.targetIp;
+    }
+    
+    if (sessionData.wordlist) {
+        wordlistInput.value = sessionData.wordlist;
+    }
+    
+    // Restore tool statuses
+    Object.entries(sessionData.toolStatuses).forEach(([tool, status]) => {
+        updateStatusElement(document.getElementById(`${tool}-status`), tool, status);
+        updateStatusCard(tool, status.status);
+    });
+    
+    // Restore results
+    Object.entries(sessionData.results).forEach(([tool, result]) => {
+        const resultSpan = document.getElementById(`${tool}-result`);
+        if (resultSpan && result) {
+            updateResultLink(resultSpan, result);
+        }
+    });
+    
+    // If a scan was in progress, resume polling
+    if (isActiveSession()) {
+        isScanning = true;
+        intervalId = setInterval(fetchStatus, 2000);
+    }
+}
+
+// Check if there's an active scanning session
+function isActiveSession() {
+    if (!sessionData.lastUpdate) return false;
+    
+    const lastUpdate = new Date(sessionData.lastUpdate);
+    const now = new Date();
+    const timeDiff = now - lastUpdate;
+    const hasRunningTools = Object.values(sessionData.toolStatuses).some(
+        status => status.status === 'running'
+    );
+    
+    // Consider session active if last update was within 5 minutes and has running tools
+    return timeDiff < 5 * 60 * 1000 && hasRunningTools;
+}
+
+// Update session data with current tool status
+function updateSessionStatus(toolName, status) {
+    sessionData.toolStatuses[toolName] = status;
+    if (status.output_file) {
+        sessionData.results[toolName] = status;
+    }
+    saveSessionData();
+}
+
+// Handle page refresh/unload
+window.addEventListener('beforeunload', (event) => {
+    if (isScanning) {
+        event.preventDefault();
+        event.returnValue = 'You have a scan in progress. Are you sure you want to leave?';
+        return event.returnValue;
+    }
+});
+
 // Main Functions
 async function handleFormSubmit(event) {
     event.preventDefault();
     const ip = ipInput.value;
     const wordlist = wordlistInput.value.trim();
     if (!ip) return;
+
+    // Update session data
+    sessionData.targetIp = ip;
+    sessionData.wordlist = wordlist;
+    isScanning = true;
+    saveSessionData();
 
     // Show loading state
     scanButton.disabled = true;
@@ -184,6 +286,17 @@ async function handleFormSubmit(event) {
 }
 
 function resetUI() {
+    // Clear session data
+    sessionData = {
+        targetIp: null,
+        wordlist: null,
+        toolStatuses: {},
+        results: {},
+        lastUpdate: null
+    };
+    localStorage.removeItem('scanSessionData');
+    isScanning = false;
+    
     ['nmap', 'dirb', 'gobuster'].forEach(tool => {
         updateStatusElement(document.getElementById(`${tool}-status`), tool, { status: 'idle' });
         updateStatusCard(tool, 'idle');
@@ -201,6 +314,13 @@ async function fetchStatus() {
     try {
         const response = await fetch('/status');
         const status = await response.json();
+
+        // Update session data with new status
+        ['nmap', 'dirb', 'gobuster'].forEach(tool => {
+            if (status[tool]) {
+                updateSessionStatus(tool, status[tool]);
+            }
+        });
 
         // Update status elements and cards
         ['nmap', 'dirb', 'gobuster'].forEach(tool => {
@@ -230,11 +350,12 @@ async function fetchStatus() {
             showNotification(status.error, 'error');
         }
 
-        // Stop polling if all scans are finished
+        // Check if scanning is complete
         const finished = ['completed', 'failed'];
         if (finished.includes(status.nmap.status) &&
             finished.includes(status.dirb.status) &&
             finished.includes(status.gobuster.status)) {
+            isScanning = false;
             clearInterval(intervalId);
             intervalId = null;
             showNotification('All scans completed!', 'success');
