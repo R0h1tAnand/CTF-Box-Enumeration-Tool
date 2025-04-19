@@ -2,7 +2,6 @@
 
 A modern web interface for running multiple security scanning tools simultaneously. Combines the power of Nmap, Dirb, and Gobuster in one sleek dashboard.
 
-![Security Scanner Dashboard](screenshots/dashboard.png)
 
 ## ✨ Features
 
