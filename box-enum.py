@@ -18,69 +18,227 @@ DEFAULT_WORDLIST = "/usr/share/wordlists/dirb/small.txt"
 # --- Scan Status (simple in-memory storage) ---
 scan_status = {
     "target_ip": None,
-    "nmap": {"status": "idle", "output_file": NMAP_OUTPUT_FILE},
-    "dirb": {"status": "idle", "output_file": DIRB_OUTPUT_FILE},
+    "nmap": {"status": "idle", "output_file": NMAP_OUTPUT_FILE, "progress": 0},
+    "dirb": {"status": "idle", "output_file": DIRB_OUTPUT_FILE, "progress": 0},
     "gobuster": {
         "status": "idle", 
         "output_file": GOBUSTER_OUTPUT_FILE,
-        "wordlist": DEFAULT_WORDLIST
+        "wordlist": DEFAULT_WORDLIST,
+        "progress": 0
     },
     "error": None
 }
 
-# --- Tool Execution Functions ---
-def run_command(command, tool_name, status_dict):
-    """Runs a shell command and updates the status dictionary."""
-    status_dict[tool_name]["status"] = "running"
+# Store active processes
+active_processes = {
+    "nmap": None,
+    "dirb": None,
+    "gobuster": None
+}
+
+def kill_process(process):
+    """Safely kill a process and its children."""
+    if process:
+        try:
+            import psutil
+            parent = psutil.Process(process.pid)
+            children = parent.children(recursive=True)
+            for child in children:
+                child.kill()
+            parent.kill()
+        except:
+            # Fallback to basic process termination
+            process.kill()
+
+def stop_all_scans():
+    """Stop all running scans."""
+    for tool, process in active_processes.items():
+        if process:
+            kill_process(process)
+            scan_status[tool]["status"] = "stopped"
+            scan_status[tool]["progress"] = 0
+            active_processes[tool] = None
+    
+    scan_status["error"] = "Scans stopped by user"
+
+# --- Tool Functions ---
+def run_nmap_scan(ip):
+    """Run Nmap scan on target IP."""
     try:
-        print(f"Starting {tool_name}...")
-        # Use shell=True carefully, ensure command components are controlled
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        stdout, stderr = process.communicate()
+        scan_status["nmap"]["status"] = "running"
+        scan_status["nmap"]["progress"] = 0
+        
+        # Run Nmap with progress tracking
+        process = subprocess.Popen(
+            f"nmap -sC -sV -oN {NMAP_OUTPUT_FILE} {ip}",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            universal_newlines=True
+        )
+        
+        # Store process reference
+        active_processes["nmap"] = process
+        
+        # Monitor the output to track progress
+        while True:
+            if process.poll() is not None:
+                break
+                
+            output = process.stdout.readline()
+            if output == '':
+                continue
+                
+            # Update progress based on Nmap output
+            if "Scanning" in output:
+                scan_status["nmap"]["progress"] = 30
+            elif "PORT" in output:
+                scan_status["nmap"]["progress"] = 50
+            elif "Service detection performed" in output:
+                scan_status["nmap"]["progress"] = 80
+        
+        # Wait for process to complete
+        process.wait()
+        
+        if process.returncode == 0:
+            scan_status["nmap"]["status"] = "completed"
+            scan_status["nmap"]["progress"] = 100
+        else:
+            scan_status["nmap"]["status"] = "failed"
+            scan_status["nmap"]["error"] = process.stderr.read()
+            scan_status["error"] = f"Nmap scan failed: {scan_status['nmap']['error']}"
+            
+    except Exception as e:
+        scan_status["nmap"]["status"] = "failed"
+        scan_status["nmap"]["error"] = str(e)
+        scan_status["error"] = f"Nmap scan failed: {str(e)}"
+    finally:
+        active_processes["nmap"] = None
+        if scan_status["nmap"]["status"] not in ["completed", "stopped"]:
+            scan_status["nmap"]["progress"] = 0
+
+def run_dirb_scan(ip):
+    """Run Dirb scan on target IP."""
+    try:
+        scan_status["dirb"]["status"] = "running"
+        scan_status["dirb"]["progress"] = 0
+        
+        # Run Dirb with progress tracking
+        process = subprocess.Popen(
+            f"dirb http://{ip} -o {DIRB_OUTPUT_FILE}",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            universal_newlines=True
+        )
+        
+        # Store process reference
+        active_processes["dirb"] = process
+        
+        # Monitor the output to track progress
+        while True:
+            if process.poll() is not None:
+                break
+                
+            output = process.stdout.readline()
+            if output == '':
+                continue
+                
+            # Update progress based on Dirb output
+            if "START_TIME" in output:
+                scan_status["dirb"]["progress"] = 10
+            elif "GENERATED WORDS" in output:
+                scan_status["dirb"]["progress"] = 30
+            elif "FOUND" in output:
+                # Increment progress for each found item
+                current_progress = scan_status["dirb"]["progress"]
+                scan_status["dirb"]["progress"] = min(90, current_progress + 5)
+        
+        # Wait for process to complete
+        process.wait()
 
         if process.returncode == 0:
-            status_dict[tool_name]["status"] = "completed"
-            print(f"{tool_name} completed successfully.")
-            # Basic: Just indicate completion. Real app should parse/store results.
+            scan_status["dirb"]["status"] = "completed"
+            scan_status["dirb"]["progress"] = 100
         else:
-            status_dict[tool_name]["status"] = "failed"
-            status_dict[tool_name]["error"] = stderr.strip()
-            print(f"{tool_name} failed: {stderr.strip()}")
-
-    except FileNotFoundError:
-        status_dict[tool_name]["status"] = "failed"
-        status_dict[tool_name]["error"] = f"{tool_name} command not found. Is it installed and in PATH?"
-        print(status_dict[tool_name]["error"])
+            scan_status["dirb"]["status"] = "failed"
+            scan_status["dirb"]["error"] = process.stderr.read()
+            scan_status["error"] = f"Dirb scan failed: {scan_status['dirb']['error']}"
+            
     except Exception as e:
-        status_dict[tool_name]["status"] = "failed"
-        status_dict[tool_name]["error"] = str(e)
-        print(f"An error occurred running {tool_name}: {e}")
+        scan_status["dirb"]["status"] = "failed"
+        scan_status["dirb"]["error"] = str(e)
+        scan_status["error"] = f"Dirb scan failed: {str(e)}"
+    finally:
+        active_processes["dirb"] = None
+        if scan_status["dirb"]["status"] not in ["completed", "stopped"]:
+            scan_status["dirb"]["progress"] = 0
 
-def run_nmap(ip):
-    """Runs Nmap scan."""
-    command = f"nmap -sC -sV -oN {NMAP_OUTPUT_FILE} {ip}"
-    run_command(command, "nmap", scan_status)
-
-def run_dirb(ip):
-    """Runs Dirb scan."""
-    target_url = f"http://{ip}/"
-    command = f"dirb {target_url} -o {DIRB_OUTPUT_FILE}"
-    run_command(command, "dirb", scan_status)
-
-def run_gobuster(ip, wordlist=None):
-    """Runs Gobuster scan."""
-    target_url = f"http://{ip}/"
-    wordlist_path = wordlist or DEFAULT_WORDLIST
-    
-    if not os.path.exists(wordlist_path):
-         scan_status["gobuster"]["status"] = "failed"
-         scan_status["gobuster"]["error"] = f"Gobuster wordlist not found: {wordlist_path}"
-         print(scan_status["gobuster"]["error"])
-         return
-         
-    scan_status["gobuster"]["wordlist"] = wordlist_path
-    command = f"gobuster dir -u {target_url} -w {wordlist_path} -o {GOBUSTER_OUTPUT_FILE}"
-    run_command(command, "gobuster", scan_status)
+def run_gobuster_scan(ip, wordlist=None):
+    """Run Gobuster scan on target IP."""
+    try:
+        scan_status["gobuster"]["status"] = "running"
+        scan_status["gobuster"]["progress"] = 0
+        wordlist_path = wordlist if wordlist else DEFAULT_WORDLIST
+        scan_status["gobuster"]["wordlist"] = wordlist_path
+        
+        # Run Gobuster with progress tracking
+        process = subprocess.Popen(
+            f"gobuster dir -u http://{ip} -w {wordlist_path} -o {GOBUSTER_OUTPUT_FILE}",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            universal_newlines=True
+        )
+        
+        # Store process reference
+        active_processes["gobuster"] = process
+        
+        # Monitor the output to track progress
+        while True:
+            if process.poll() is not None:
+                break
+                
+            output = process.stdout.readline()
+            if output == '':
+                continue
+                
+            # Update progress based on Gobuster output
+            if "Starting gobuster" in output:
+                scan_status["gobuster"]["progress"] = 10
+            elif "Progress:" in output:
+                try:
+                    # Extract progress percentage from Gobuster output
+                    progress = int(output.split("[")[1].split("%")[0])
+                    scan_status["gobuster"]["progress"] = progress
+                except:
+                    pass
+        
+        # Wait for process to complete
+        process.wait()
+        
+        if process.returncode == 0:
+            scan_status["gobuster"]["status"] = "completed"
+            scan_status["gobuster"]["progress"] = 100
+        else:
+            scan_status["gobuster"]["status"] = "failed"
+            scan_status["gobuster"]["error"] = process.stderr.read()
+            scan_status["error"] = f"Gobuster scan failed: {scan_status['gobuster']['error']}"
+            
+    except Exception as e:
+        scan_status["gobuster"]["status"] = "failed"
+        scan_status["gobuster"]["error"] = str(e)
+        scan_status["error"] = f"Gobuster scan failed: {str(e)}"
+    finally:
+        active_processes["gobuster"] = None
+        if scan_status["gobuster"]["status"] not in ["completed", "stopped"]:
+            scan_status["gobuster"]["progress"] = 0
 
 # --- Flask Routes ---
 @app.route('/')
@@ -90,111 +248,104 @@ def index():
 
 @app.route('/scan', methods=['POST'])
 def start_scan():
-    """Starts the enumeration scans in separate threads."""
-    global scan_status
-    data = request.json
-    ip = data.get('ip_address')
-    wordlist = data.get('wordlist')
-
-    if not ip:
-        return jsonify({"error": "IP address is required"}), 400
-
-    # Reset status for a new scan
-    scan_status = {
-        "target_ip": ip,
-        "nmap": {"status": "idle", "output_file": NMAP_OUTPUT_FILE, "error": None},
-        "dirb": {"status": "idle", "output_file": DIRB_OUTPUT_FILE, "error": None},
-        "gobuster": {
-            "status": "idle", 
-            "output_file": GOBUSTER_OUTPUT_FILE, 
-            "error": None,
-            "wordlist": wordlist or DEFAULT_WORDLIST
-        },
-        "error": None
-    }
-
-    # Create output directory if it doesn't exist
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-    # Delete previous output files
-    for file_path in [NMAP_OUTPUT_FILE, DIRB_OUTPUT_FILE, GOBUSTER_OUTPUT_FILE]:
-        try:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                print(f"Removed previous output file: {file_path}")
-        except OSError as e:
-            print(f"Error removing file {file_path}: {e}")
-
+    """Start the scanning process."""
     try:
-        # Create and start threads for each scan
-        nmap_thread = threading.Thread(target=run_nmap, args=(ip,))
-        dirb_thread = threading.Thread(target=run_dirb, args=(ip,))
-        gobuster_thread = threading.Thread(target=run_gobuster, args=(ip, wordlist))
+        data = request.get_json()
+        ip_address = data.get('ip_address')
+        wordlist = data.get('wordlist')
+        selected_tools = data.get('selected_tools', [])
 
-        nmap_thread.start()
-        dirb_thread.start()
-        gobuster_thread.start()
+        if not ip_address:
+            return jsonify({"error": "IP address is required"}), 400
 
-        return jsonify({"message": f"Scan started for {ip}"}), 202 # Accepted
+        if not selected_tools:
+            return jsonify({"error": "At least one tool must be selected"}), 400
+
+        # Reset status for selected tools
+        scan_status["target_ip"] = ip_address
+        scan_status["error"] = None
+        
+        for tool in ["nmap", "dirb", "gobuster"]:
+            if tool in selected_tools:
+                scan_status[tool]["status"] = "idle"
+                scan_status[tool]["error"] = None
+            else:
+                scan_status[tool]["status"] = "idle"
+
+        # Create output directory if it doesn't exist
+        try:
+            os.makedirs(OUTPUT_DIR, exist_ok=True)
+        except Exception as e:
+            return jsonify({"error": f"Failed to create output directory: {str(e)}"}), 500
+
+        # Start selected scans in separate threads
+        try:
+            if "nmap" in selected_tools:
+                threading.Thread(target=run_nmap_scan, args=(ip_address,), daemon=True).start()
+            
+            if "dirb" in selected_tools:
+                threading.Thread(target=run_dirb_scan, args=(ip_address,), daemon=True).start()
+            
+            if "gobuster" in selected_tools:
+                threading.Thread(target=run_gobuster_scan, args=(ip_address, wordlist), daemon=True).start()
+
+            return jsonify({"message": "Scan started successfully"}), 200
+
+        except Exception as e:
+            return jsonify({"error": f"Failed to start scans: {str(e)}"}), 500
+
     except Exception as e:
-        scan_status["error"] = f"Failed to start threads: {e}"
-        return jsonify({"error": scan_status["error"]}), 500
+        return jsonify({"error": f"Invalid request: {str(e)}"}), 400
 
 @app.route('/status')
 def get_status():
-    """Returns the current status of the scans."""
+    """Get the current status of all scans."""
     return jsonify(scan_status)
 
 @app.route('/results/<tool>')
-def get_tool_results(tool):
-    """Returns the contents of a tool's output file."""
-    file_paths = {
-        'nmap': NMAP_OUTPUT_FILE,
-        'dirb': DIRB_OUTPUT_FILE,
-        'gobuster': GOBUSTER_OUTPUT_FILE
-    }
-    
-    if tool not in file_paths:
-        return jsonify({'error': 'Invalid tool specified'}), 400
-        
-    file_path = file_paths[tool]
-    
+def get_results(tool):
+    """Get the results for a specific tool."""
+    if tool not in scan_status:
+        return jsonify({"error": "Invalid tool specified"}), 400
+
+    output_file = scan_status[tool]["output_file"]
     try:
-        if os.path.exists(file_path):
-            with open(file_path, 'r') as f:
+        if os.path.exists(output_file):
+            with open(output_file, 'r') as f:
                 content = f.read()
-            return jsonify({'content': content})
+            return jsonify({"content": content}), 200
         else:
-            return jsonify({'content': 'No results available yet'})
+            return jsonify({"content": "No results available yet"}), 200
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/export/<tool>')
 def export_results(tool):
-    """Exports the results of a specific tool."""
-    file_paths = {
-        'nmap': NMAP_OUTPUT_FILE,
-        'dirb': DIRB_OUTPUT_FILE,
-        'gobuster': GOBUSTER_OUTPUT_FILE
-    }
-    
-    if tool not in file_paths:
-        return jsonify({'error': 'Invalid tool specified'}), 400
-        
-    file_path = file_paths[tool]
-    
-    if not os.path.exists(file_path):
-        return jsonify({'error': 'No results available for export'}), 404
-        
+    """Export results for a specific tool."""
+    if tool not in scan_status:
+        return jsonify({"error": "Invalid tool specified"}), 400
+
+    output_file = scan_status[tool]["output_file"]
     try:
-        return send_file(
-            file_path,
-            mimetype='text/plain',
-            as_attachment=True,
-            download_name=f"{tool}_results.txt"
-        )
+        if os.path.exists(output_file):
+            return send_file(
+                output_file,
+                as_attachment=True,
+                download_name=f"{tool}_results.txt"
+            )
+        else:
+            return jsonify({"error": "No results available"}), 404
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/stop', methods=['POST'])
+def stop_scan():
+    """Stop all running scans."""
+    try:
+        stop_all_scans()
+        return jsonify({"message": "All scans stopped"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # --- Main Execution ---
 if __name__ == '__main__':

@@ -25,26 +25,51 @@
                 <form id="scan-form">
                     <div class="form-group">
                         <label for="ip_address">Target IP Address:</label>
-                        <div class="input-group">
-                            <input type="text" id="ip_address" name="ip_address" class="form-control" 
-                                   placeholder="Enter target IP address" required
-                                   data-tooltip="Enter the IP address of the target system">
-                            <i class="fas fa-info-circle help-icon" data-tooltip="IPv4 address format: xxx.xxx.xxx.xxx"></i>
-                        </div>
+                        <input type="text" id="ip_address" name="ip_address" class="form-control" 
+                               placeholder="Enter target IP address" required>
                     </div>
+
                     <div class="form-group">
                         <label for="wordlist">Gobuster Wordlist Path (Optional):</label>
-                        <div class="input-group">
-                            <input type="text" id="wordlist" name="wordlist" class="form-control"
-                                   placeholder="/usr/share/wordlists/dirb/small.txt"
-                                   data-tooltip="Leave empty to use default wordlist">
-                            <i class="fas fa-info-circle help-icon" data-tooltip="Default: /usr/share/wordlists/dirb/small.txt"></i>
+                        <input type="text" id="wordlist" name="wordlist" class="form-control"
+                               placeholder="/usr/share/wordlists/dirb/small.txt">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Select Tools to Run:</label>
+                        <div class="tool-selection">
+                            <div class="tool-checkbox">
+                                <input type="checkbox" id="nmap-tool" name="selected_tools" value="nmap" checked>
+                                <label for="nmap-tool">
+                                    <i class="fas fa-network-wired"></i> Nmap
+                                    <span class="tool-description">Network scanning and port detection</span>
+                                </label>
+                            </div>
+                            <div class="tool-checkbox">
+                                <input type="checkbox" id="dirb-tool" name="selected_tools" value="dirb" checked>
+                                <label for="dirb-tool">
+                                    <i class="fas fa-folder-tree"></i> Dirb
+                                    <span class="tool-description">Web content scanning</span>
+                                </label>
+                            </div>
+                            <div class="tool-checkbox">
+                                <input type="checkbox" id="gobuster-tool" name="selected_tools" value="gobuster" checked>
+                                <label for="gobuster-tool">
+                                    <i class="fas fa-search"></i> Gobuster
+                                    <span class="tool-description">Directory enumeration</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn" id="scan-button">
-                        <i class="fas fa-play"></i> Start Scan
-                        <span class="loading-spinner" style="display: none;"></span>
-                    </button>
+
+                    <div class="action-buttons">
+                        <button type="submit" id="start-button" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Start Scan
+                        </button>
+                        <button type="button" id="stop-button" class="btn btn-danger">
+                            <i class="fas fa-stop"></i> Stop Scan
+                        </button>
+                    </div>
                 </form>
             </section>
 

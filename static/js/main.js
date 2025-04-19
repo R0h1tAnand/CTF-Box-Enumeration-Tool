@@ -10,13 +10,17 @@ const errorLogDiv = document.getElementById('error-log');
 const nmapResultSpan = document.getElementById('nmap-result');
 const dirbResultSpan = document.getElementById('dirb-result');
 const gobusterResultSpan = document.getElementById('gobuster-result');
-const scanButton = document.getElementById('scan-button');
+const startButton = document.getElementById('start-button');
+const stopButton = document.getElementById('stop-button');
 const refreshButton = document.getElementById('refresh-results');
 const exportButton = document.getElementById('export-results');
 const statusCards = document.querySelectorAll('.status-card');
 const resultHeaders = document.querySelectorAll('.result-header');
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon = themeToggle.querySelector('i');
+
+// Tool selection elements
+const toolCheckboxes = document.querySelectorAll('input[name="selected_tools"]');
 
 let intervalId = null;
 
@@ -27,20 +31,18 @@ let sessionData = {
     wordlist: null,
     toolStatuses: {},
     results: {},
-    lastUpdate: null
+    lastUpdate: null,
+    selectedTools: [] // Add selected tools to session data
 };
 
 // Theme Management
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
+    document.body.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
 }
 
-function setTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-    
-    // Update icon
+function updateThemeIcon(theme) {
     if (theme === 'dark') {
         themeIcon.classList.remove('fa-moon');
         themeIcon.classList.add('fa-sun');
@@ -51,18 +53,26 @@ function setTheme(theme) {
 }
 
 function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const currentTheme = document.body.getAttribute('data-theme') || 'light';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
+    document.body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
 }
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
     initTheme();
     loadSessionData();
-    themeToggle.addEventListener('click', toggleTheme);
+    restoreToolSelection();
+    updateUIForSelectedTools();
     
+    themeToggle.addEventListener('click', toggleTheme);
     form.addEventListener('submit', handleFormSubmit);
+    if (stopButton) {
+        stopButton.addEventListener('click', handleStopScan);
+        stopButton.style.display = 'none'; // Hide initially
+    }
     refreshButton.addEventListener('click', handleRefresh);
     exportButton.addEventListener('click', handleExport);
     resultHeaders.forEach(header => {
@@ -141,26 +151,63 @@ function updateProgress(toolName, progress) {
 }
 
 // Status Card Animation
-function updateStatusCard(toolName, status) {
+function updateStatusCard(toolName, status, progress) {
     const card = document.querySelector(`[data-tool="${toolName}"]`);
     if (card) {
         card.className = `status-card ${status}`;
-        updateProgress(toolName, status === 'completed' ? 100 : status === 'running' ? 50 : 0);
+        updateProgress(toolName, progress);
     }
 }
 
 // Load session data on page load
 function loadSessionData() {
-    const savedData = localStorage.getItem('scanSessionData');
-    if (savedData) {
-        try {
-            sessionData = JSON.parse(savedData);
-            restoreUIFromSession();
-        } catch (error) {
-            console.error('Error loading session data:', error);
-            localStorage.removeItem('scanSessionData');
-        }
-    }
+    // Clear any existing session data
+    localStorage.removeItem('scanSessionData');
+    sessionData = {
+        targetIp: null,
+        wordlist: null,
+        toolStatuses: {},
+        results: {},
+        lastUpdate: null,
+        selectedTools: []
+    };
+    
+    // Reset the UI
+    resetUI();
+    
+    // Uncheck all tool checkboxes
+    toolCheckboxes.forEach(cb => {
+        cb.checked = true; // Set to true since they're checked by default
+    });
+    
+    // Clear form inputs
+    if (ipInput) ipInput.value = '';
+    if (wordlistInput) wordlistInput.value = '';
+    
+    // Reset target IP display
+    if (targetIpSpan) targetIpSpan.textContent = 'N/A';
+    
+    // Clear all result displays
+    ['nmap', 'dirb', 'gobuster'].forEach(tool => {
+        const resultSpan = document.getElementById(`${tool}-result`);
+        if (resultSpan) resultSpan.innerHTML = 'N/A';
+        
+        const outputElement = document.getElementById(`${tool}-output`);
+        if (outputElement) outputElement.textContent = 'No results available';
+        
+        updateStatusElement(
+            document.getElementById(`${tool}-status`),
+            tool,
+            { status: 'idle', progress: 0 }
+        );
+        updateStatusCard(tool, 'idle', 0);
+    });
+    
+    // Reset buttons
+    resetButtonStates();
+    
+    // Clear error log
+    if (errorLogDiv) errorLogDiv.textContent = '';
 }
 
 // Save session data
@@ -183,7 +230,7 @@ function restoreUIFromSession() {
     // Restore tool statuses
     Object.entries(sessionData.toolStatuses).forEach(([tool, status]) => {
         updateStatusElement(document.getElementById(`${tool}-status`), tool, status);
-        updateStatusCard(tool, status.status);
+        updateStatusCard(tool, status.status, status.progress || 0);
     });
     
     // Restore results
@@ -227,11 +274,29 @@ function updateSessionStatus(toolName, status) {
 
 // Handle page refresh/unload
 window.addEventListener('beforeunload', (event) => {
-    if (isScanning) {
+    // Check if there's any session data or active scan
+    if (Object.keys(sessionData).length > 0 || isScanning) {
+        // Cancel the event
         event.preventDefault();
-        event.returnValue = 'You have a scan in progress. Are you sure you want to leave?';
+        // Chrome requires returnValue to be set
+        event.returnValue = 'You have scan data that will be lost. Are you sure you want to leave?';
         return event.returnValue;
     }
+});
+
+// Add event listener for when the page is actually being unloaded
+window.addEventListener('unload', () => {
+    // Clear all session data
+    localStorage.removeItem('scanSessionData');
+    localStorage.removeItem('theme');
+    sessionData = {
+        targetIp: null,
+        wordlist: null,
+        toolStatuses: {},
+        results: {},
+        lastUpdate: null,
+        selectedTools: []
+    };
 });
 
 // Main Functions
@@ -241,16 +306,27 @@ async function handleFormSubmit(event) {
     const wordlist = wordlistInput.value.trim();
     if (!ip) return;
 
+    // Get selected tools
+    const selectedTools = Array.from(toolCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    if (selectedTools.length === 0) {
+        showNotification('Please select at least one tool to run', 'error');
+        return;
+    }
+
     // Update session data
     sessionData.targetIp = ip;
     sessionData.wordlist = wordlist;
+    sessionData.selectedTools = selectedTools;
     isScanning = true;
     saveSessionData();
 
-    // Show loading state
-    scanButton.disabled = true;
-    const spinner = scanButton.querySelector('.loading-spinner');
-    spinner.style.display = 'inline-block';
+    // Update button states
+    startButton.disabled = true;
+    stopButton.style.display = 'inline-flex';
+    stopButton.disabled = false;
 
     // Clear previous status and stop polling if any
     if (intervalId) clearInterval(intervalId);
@@ -263,26 +339,67 @@ async function handleFormSubmit(event) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 ip_address: ip,
-                wordlist: wordlist || undefined // Only send if not empty
+                wordlist: wordlist || undefined,
+                selected_tools: selectedTools
             })
         });
         const result = await response.json();
         
         if (response.ok) {
             showNotification('Scan started successfully', 'success');
-            // Start polling for status updates
             intervalId = setInterval(fetchStatus, 2000);
-            fetchStatus(); // Initial fetch
+            fetchStatus();
         } else {
             showNotification(`Error starting scan: ${result.error || 'Unknown error'}`, 'error');
+            resetButtonStates();
         }
     } catch (error) {
         showNotification(`Network error: ${error}`, 'error');
-    } finally {
-        // Reset button state
-        scanButton.disabled = false;
-        spinner.style.display = 'none';
+        resetButtonStates();
     }
+}
+
+async function handleStopScan() {
+    try {
+        stopButton.disabled = true;
+        const response = await fetch('/stop', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+            showNotification('Scans stopped successfully', 'info');
+            isScanning = false;
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            resetButtonStates();
+            
+            // Update status for all selected tools
+            (sessionData.selectedTools || []).forEach(tool => {
+                updateStatusElement(
+                    document.getElementById(`${tool}-status`),
+                    tool,
+                    { status: 'stopped', progress: 0 }
+                );
+                updateStatusCard(tool, 'stopped', 0);
+            });
+        } else {
+            const error = await response.json();
+            showNotification(`Failed to stop scans: ${error.error}`, 'error');
+            stopButton.disabled = false;
+        }
+    } catch (error) {
+        showNotification(`Error stopping scans: ${error}`, 'error');
+        stopButton.disabled = false;
+    }
+}
+
+function resetButtonStates() {
+    startButton.disabled = false;
+    stopButton.style.display = 'none';
+    stopButton.disabled = false;
 }
 
 function resetUI() {
@@ -292,22 +409,45 @@ function resetUI() {
         wordlist: null,
         toolStatuses: {},
         results: {},
-        lastUpdate: null
+        lastUpdate: null,
+        selectedTools: []
     };
     localStorage.removeItem('scanSessionData');
     isScanning = false;
     
+    // Reset buttons
+    resetButtonStates();
+    
+    // Reset all tool statuses
     ['nmap', 'dirb', 'gobuster'].forEach(tool => {
-        updateStatusElement(document.getElementById(`${tool}-status`), tool, { status: 'idle' });
-        updateStatusCard(tool, 'idle');
-        document.querySelector(`[data-tool="${tool}"] .status-badge`).textContent = 'Idle';
+        updateStatusElement(
+            document.getElementById(`${tool}-status`),
+            tool,
+            { status: 'idle', progress: 0 }
+        );
+        updateStatusCard(tool, 'idle', 0);
+        
+        const resultSpan = document.getElementById(`${tool}-result`);
+        if (resultSpan) resultSpan.innerHTML = 'N/A';
+        
+        const outputElement = document.getElementById(`${tool}-output`);
+        if (outputElement) outputElement.textContent = 'No results available';
+        
+        const statusBadge = document.querySelector(`[data-tool="${tool}"] .status-badge`);
+        if (statusBadge) statusBadge.textContent = 'Idle';
     });
     
-    nmapResultSpan.innerHTML = 'N/A';
-    dirbResultSpan.innerHTML = 'N/A';
-    gobusterResultSpan.innerHTML = 'N/A';
-    errorLogDiv.textContent = '';
-    targetIpSpan.textContent = 'N/A';
+    // Clear error log
+    if (errorLogDiv) errorLogDiv.textContent = '';
+    
+    // Reset target IP display
+    if (targetIpSpan) targetIpSpan.textContent = 'N/A';
+    
+    // Stop any ongoing polling
+    if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+    }
 }
 
 async function fetchStatus() {
@@ -322,8 +462,8 @@ async function fetchStatus() {
             }
         });
 
-        // Update status elements and cards
-        ['nmap', 'dirb', 'gobuster'].forEach(tool => {
+        // Update status elements and cards for selected tools only
+        (sessionData.selectedTools || []).forEach(tool => {
             const statusElement = document.getElementById(`${tool}-status`);
             const resultSpan = document.getElementById(`${tool}-result`);
             
@@ -350,15 +490,12 @@ async function fetchStatus() {
             showNotification(status.error, 'error');
         }
 
-        // Check if scanning is complete
-        const finished = ['completed', 'failed'];
-        if (finished.includes(status.nmap.status) &&
-            finished.includes(status.dirb.status) &&
-            finished.includes(status.gobuster.status)) {
+        // Check if all selected scans are complete
+        if (isAllScansComplete(status)) {
             isScanning = false;
             clearInterval(intervalId);
             intervalId = null;
-            showNotification('All scans completed!', 'success');
+            showNotification('All selected scans completed!', 'success');
         }
     } catch (error) {
         console.error("Error fetching status:", error);
@@ -368,18 +505,21 @@ async function fetchStatus() {
 
 function updateStatusElement(element, toolName, toolStatus) {
     if (!element) return;
+    
     element.className = `status ${toolStatus.status}`;
     let text = `${toolName}: ${toolStatus.status}`;
     if (toolStatus.error) {
         text += ` (Error: ${toolStatus.error})`;
+    } else if (toolStatus.status === 'running') {
+        text += ` (${toolStatus.progress || 0}%)`;
     }
     element.textContent = text;
     
     // Update the status badge
     updateStatusBadge(toolName, toolStatus.status);
     
-    // Update the status card
-    updateStatusCard(toolName, toolStatus.status);
+    // Update the status card with progress
+    updateStatusCard(toolName, toolStatus.status, toolStatus.progress || 0);
 }
 
 function updateStatusBadge(toolName, status) {
@@ -421,26 +561,75 @@ function handleExport() {
     showNotification('Export feature coming soon!', 'info');
 }
 
+// Initialize notifications container
+let notificationsContainer;
+
+function initNotifications() {
+    if (!document.querySelector('.notifications-container')) {
+        notificationsContainer = document.createElement('div');
+        notificationsContainer.className = 'notifications-container';
+        document.body.appendChild(notificationsContainer);
+    }
+}
+
 function showNotification(message, type = 'info') {
+    initNotifications();
+    
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
+    
+    // Create unique ID for the notification
+    const notificationId = 'notification-' + Date.now();
+    notification.id = notificationId;
+    
+    // Add content with close button
     notification.innerHTML = `
         <i class="fas ${getNotificationIcon(type)}"></i>
         <span>${message}</span>
+        <button class="close-btn" onclick="removeNotification('${notificationId}')">
+            <i class="fas fa-times"></i>
+        </button>
     `;
     
-    document.body.appendChild(notification);
+    // Add to container
+    notificationsContainer.appendChild(notification);
     
-    // Animate in
+    // Trigger animation
     setTimeout(() => notification.classList.add('show'), 10);
     
-    // Remove after 5 seconds
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
+    // Auto remove after delay
+    const timeout = setTimeout(() => {
+        removeNotification(notificationId);
     }, 5000);
+    
+    // Store timeout ID in the notification element
+    notification.dataset.timeoutId = timeout;
 }
 
+function removeNotification(notificationId) {
+    const notification = document.getElementById(notificationId);
+    if (!notification) return;
+    
+    // Clear the auto-remove timeout
+    clearTimeout(Number(notification.dataset.timeoutId));
+    
+    // Add fade-out class for animation
+    notification.classList.add('fade-out');
+    notification.classList.remove('show');
+    
+    // Remove element after animation
+    setTimeout(() => {
+        notification.remove();
+        
+        // Remove container if empty
+        if (notificationsContainer && !notificationsContainer.hasChildNodes()) {
+            notificationsContainer.remove();
+            notificationsContainer = null;
+        }
+    }, 300);
+}
+
+// Update the getNotificationIcon function
 function getNotificationIcon(type) {
     switch (type) {
         case 'success': return 'fa-check-circle';
@@ -449,6 +638,9 @@ function getNotificationIcon(type) {
         default: return 'fa-info-circle';
     }
 }
+
+// Add this to window object so it can be called from HTML
+window.removeNotification = removeNotification;
 
 // Initialize tooltips
 document.querySelectorAll('[data-tooltip]').forEach(element => {
@@ -524,4 +716,167 @@ async function exportResults(tool) {
     } catch (error) {
         showNotification(`Export failed: ${error}`, 'error');
     }
+}
+
+// Save selected tools state
+function saveToolSelection() {
+    const selectedTools = Array.from(toolCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+    sessionData.selectedTools = selectedTools;
+    saveSessionData();
+}
+
+// Restore tool selection from session
+function restoreToolSelection() {
+    if (sessionData.selectedTools && sessionData.selectedTools.length > 0) {
+        toolCheckboxes.forEach(cb => {
+            cb.checked = sessionData.selectedTools.includes(cb.value);
+        });
+    }
+}
+
+// Update UI based on tool selection
+function updateUIForSelectedTools() {
+    const selectedTools = Array.from(toolCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    // Update visibility of status cards and result items
+    ['nmap', 'dirb', 'gobuster'].forEach(tool => {
+        const statusCard = document.querySelector(`[data-tool="${tool}"]`);
+        const resultItem = document.querySelector(`.result-item[data-tool="${tool}"]`);
+        
+        if (statusCard) {
+            statusCard.style.display = selectedTools.includes(tool) ? 'block' : 'none';
+        }
+        if (resultItem) {
+            resultItem.style.display = selectedTools.includes(tool) ? 'block' : 'none';
+        }
+    });
+}
+
+// Add event listeners for tool selection
+toolCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+        saveToolSelection();
+        updateUIForSelectedTools();
+    });
+});
+
+// Update status check to consider progress
+function isAllScansComplete(status) {
+    const selectedTools = sessionData.selectedTools || [];
+    const finished = ['completed', 'failed'];
+    
+    return selectedTools.every(tool => 
+        status[tool] && 
+        (finished.includes(status[tool].status) || 
+        (status[tool].status === 'completed' && status[tool].progress === 100))
+    );
+}
+
+let scanInProgress = false;
+let controller = null;
+
+document.getElementById('scan-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (scanInProgress) {
+        return;
+    }
+
+    const startButton = document.getElementById('start-button');
+    const stopButton = document.getElementById('stop-button');
+    const refreshButton = document.getElementById('refresh-button');
+    const exportButton = document.getElementById('export-button');
+    
+    startButton.disabled = true;
+    stopButton.style.display = 'inline-flex';
+    refreshButton.disabled = true;
+    exportButton.disabled = true;
+    
+    scanInProgress = true;
+    controller = new AbortController();
+    
+    try {
+        const formData = new FormData(this);
+        const response = await fetch('/scan', {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal
+        });
+        
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        updateResults(data);
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log('Scan was cancelled');
+            updateStatus('Scan cancelled');
+        } else {
+            console.error('Error:', error);
+            updateStatus('Error occurred during scan');
+        }
+    } finally {
+        scanInProgress = false;
+        controller = null;
+        startButton.disabled = false;
+        stopButton.style.display = 'none';
+        refreshButton.disabled = false;
+        exportButton.disabled = false;
+    }
+});
+
+document.getElementById('stop-button').addEventListener('click', function() {
+    if (controller) {
+        controller.abort();
+        updateStatus('Cancelling scan...');
+    }
+});
+
+// Add a function to show custom confirmation dialog
+function showConfirmationDialog(message) {
+    return new Promise((resolve) => {
+        const dialogOverlay = document.createElement('div');
+        dialogOverlay.className = 'dialog-overlay';
+        
+        const dialogBox = document.createElement('div');
+        dialogBox.className = 'dialog-box';
+        
+        const messageText = document.createElement('p');
+        messageText.textContent = message;
+        
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'dialog-buttons';
+        
+        const confirmButton = document.createElement('button');
+        confirmButton.className = 'btn btn-danger';
+        confirmButton.textContent = 'Yes, Clear Data';
+        
+        const cancelButton = document.createElement('button');
+        cancelButton.className = 'btn btn-secondary';
+        cancelButton.textContent = 'Cancel';
+        
+        buttonContainer.appendChild(cancelButton);
+        buttonContainer.appendChild(confirmButton);
+        
+        dialogBox.appendChild(messageText);
+        dialogBox.appendChild(buttonContainer);
+        dialogOverlay.appendChild(dialogBox);
+        document.body.appendChild(dialogOverlay);
+        
+        confirmButton.addEventListener('click', () => {
+            document.body.removeChild(dialogOverlay);
+            resolve(true);
+        });
+        
+        cancelButton.addEventListener('click', () => {
+            document.body.removeChild(dialogOverlay);
+            resolve(false);
+        });
+    });
 } 

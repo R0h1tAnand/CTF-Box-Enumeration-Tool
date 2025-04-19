@@ -34,11 +34,11 @@
     --card-bg: #2d2d2d;
     --text-color: #e0e0e0;
     --border-color: #404040;
-    --hover-bg: rgba(100, 181, 246, 0.1);
+    --hover-bg: rgba(255, 255, 255, 0.05);
     --status-bg: #363636;
     --header-bg: linear-gradient(135deg, #1976D2, #1565C0);
     --input-bg: #363636;
-    --input-border: #505050;
+    --input-border: #404040;
     --input-text: #e0e0e0;
     --btn-text: #ffffff;
     --footer-bg: #2d2d2d;
@@ -79,50 +79,105 @@ body {
 .scan-form {
     background: var(--card-bg);
     padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px var(--shadow-color);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     margin: 2rem 0;
     border: 1px solid var(--border-color);
 }
 
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.95rem;
 }
 
 .form-control {
     width: 100%;
-    padding: 0.75rem;
+    padding: 12px 16px;
     border: 1px solid var(--input-border);
-    border-radius: 5px;
-    font-size: 1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
     background-color: var(--input-bg);
     color: var(--input-text);
-    transition: border-color 0.3s, box-shadow 0.3s;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-control:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(var(--primary-color), 0.1);
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    background-color: var(--input-bg);
+}
+
+.form-control::placeholder {
+    color: #666;
 }
 
 .btn {
-    background-color: var(--primary-color);
-    color: var(--btn-text);
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.btn:hover {
+.btn-primary {
+    background-color: #2196F3;
+    color: white;
+}
+
+.btn-primary:hover {
     background-color: #1976D2;
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.btn:active {
-    transform: translateY(0);
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    transform: scale(1.02);
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #388e3c;
+    transform: scale(1.02);
+}
+
+.btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 .status-container {
@@ -436,17 +491,46 @@ body {
 }
 
 /* Notifications */
-.notification {
+.notifications-container {
     position: fixed;
     top: 20px;
     right: 20px;
-    padding: 15px 25px;
-    border-radius: 5px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 80vh;
+    overflow-y: auto;
+    pointer-events: none;
+}
+
+.notifications-container::-webkit-scrollbar {
+    width: 5px;
+}
+
+.notifications-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notifications-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.notification {
     background: white;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    padding: 12px 25px;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px var(--shadow-color);
     transform: translateX(120%);
     transition: transform 0.3s ease-in-out;
-    z-index: 1000;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    max-width: 400px;
+    position: relative;
 }
 
 .notification.show {
@@ -466,6 +550,52 @@ body {
 .notification.info {
     background: var(--primary-color);
     color: white;
+}
+
+.notification i {
+    font-size: 1.2rem;
+}
+
+.notification span {
+    flex: 1;
+}
+
+.notification .close-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1.1rem;
+    transition: opacity 0.2s;
+}
+
+.notification .close-btn:hover {
+    opacity: 1;
+}
+
+/* Dark mode specific styles for notifications */
+[data-theme="dark"] .notification {
+    background: #2d2d2d;
+}
+
+[data-theme="dark"] .notification.success {
+    background: var(--success-color);
+}
+
+[data-theme="dark"] .notification.error {
+    background: var(--danger-color);
+}
+
+[data-theme="dark"] .notification.info {
+    background: var(--primary-color);
+}
+
+/* Animation for removing notifications */
+.notification.fade-out {
+    transform: translateX(120%);
+    opacity: 0;
 }
 
 /* Loading Spinner */
@@ -702,14 +832,14 @@ body {
 
 /* Update form elements for dark mode */
 [data-theme="dark"] .form-control {
-    background-color: #2d2d2d;
-    border-color: #444;
-    color: var(--text-color);
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
 }
 
 [data-theme="dark"] .form-control:focus {
+    background-color: rgba(0, 0, 0, 0.3);
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.1);
 }
 
 /* Update scrollbar for dark mode */
@@ -779,14 +909,14 @@ body {
 
 /* Form elements in dark mode */
 [data-theme="dark"] .form-control {
-    background-color: #363636;
-    border-color: #505050;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
     color: #e0e0e0;
 }
 
 [data-theme="dark"] .form-control:focus {
-    border-color: #64B5F6;
-    box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.2);
+    background-color: rgba(0, 0, 0, 0.3);
+    border-color: var(--primary-color);
 }
 
 /* Buttons in dark mode */
@@ -867,4 +997,182 @@ body {
 [data-theme="dark"] .status-badge.failed {
     background-color: rgba(244, 67, 54, 0.15);
     color: #E57373;
+}
+
+/* Tool Selection Styling */
+.tool-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.tool-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.tool-checkbox:hover {
+    background: var(--hover-bg);
+    transform: translateX(5px);
+}
+
+.tool-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #2196F3;
+    border-radius: 4px;
+    margin-right: 12px;
+    position: relative;
+    cursor: pointer;
+    background: var(--input-bg);
+}
+
+.tool-checkbox input[type="checkbox"]:checked {
+    background: #2196F3;
+}
+
+.tool-checkbox input[type="checkbox"]:checked::after {
+    content: '✓';
+    color: white;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+}
+
+.tool-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    flex: 1;
+    color: var(--text-color);
+    margin: 0;
+    font-weight: normal;
+}
+
+.tool-checkbox i {
+    font-size: 1.1rem;
+    color: #2196F3;
+    width: 24px;
+    text-align: center;
+}
+
+.tool-description {
+    color: #666;
+    font-size: 0.9rem;
+    margin-left: auto;
+}
+
+/* Dark mode specific styles for tool selection */
+[data-theme="dark"] .tool-checkbox {
+    background: #ffffff;
+    border-color: #e0e0e0;
+}
+
+[data-theme="dark"] .tool-checkbox:hover {
+    background: #f8f9fa;
+}
+
+[data-theme="dark"] .tool-checkbox label {
+    color: #333;
+}
+
+[data-theme="dark"] .tool-description {
+    color: #888;
+}
+
+/* Responsive design for tool selection */
+@media (max-width: 768px) {
+    .tool-description {
+        display: none;
+    }
+    
+    .tool-checkbox {
+        padding: 0.5rem;
+    }
+    
+    .tool-checkbox label {
+        font-size: 0.9rem;
+    }
+}
+
+/* Confirmation Dialog */
+.dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+
+.dialog-box {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    max-width: 400px;
+    width: 90%;
+    border: 1px solid var(--border-color);
+    animation: dialogSlideIn 0.3s ease-out;
+}
+
+.dialog-box p {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.dialog-buttons .btn {
+    min-width: 120px;
+}
+
+@keyframes dialogSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Dark mode specific styles for dialog */
+[data-theme="dark"] .dialog-box {
+    background: linear-gradient(145deg, #2d2d2d, #333333);
+    border: 1px solid #404040;
+}
+
+[data-theme="dark"] .dialog-box p {
+    color: #e0e0e0;
+}
+
+/* Action buttons container */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 1.5rem;
 } 
