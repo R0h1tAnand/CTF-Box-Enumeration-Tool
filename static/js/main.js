@@ -15,17 +15,48 @@ const refreshButton = document.getElementById('refresh-results');
 const exportButton = document.getElementById('export-results');
 const statusCards = document.querySelectorAll('.status-card');
 const resultHeaders = document.querySelectorAll('.result-header');
+const themeToggle = document.getElementById('themeToggle');
+const themeIcon = themeToggle.querySelector('i');
 
 let intervalId = null;
 
-// Event Listeners
-form.addEventListener('submit', handleFormSubmit);
-refreshButton.addEventListener('click', handleRefresh);
-exportButton.addEventListener('click', handleExport);
+// Theme Management
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+}
 
-// Add click listeners to all result headers
-resultHeaders.forEach(header => {
-    header.addEventListener('click', () => toggleResultContent(header));
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    // Update icon
+    if (theme === 'dark') {
+        themeIcon.classList.remove('fa-moon');
+        themeIcon.classList.add('fa-sun');
+    } else {
+        themeIcon.classList.remove('fa-sun');
+        themeIcon.classList.add('fa-moon');
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    initTheme();
+    themeToggle.addEventListener('click', toggleTheme);
+    
+    form.addEventListener('submit', handleFormSubmit);
+    refreshButton.addEventListener('click', handleRefresh);
+    exportButton.addEventListener('click', handleExport);
+    resultHeaders.forEach(header => {
+        header.addEventListener('click', () => toggleResultContent(header));
+    });
 });
 
 // IP Address Validation
@@ -89,63 +120,6 @@ const toolDescriptions = {
             "• Custom wordlist scanning"
     }
 };
-
-// Initialize collapsible functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Add click event listeners to all collapsible elements
-    document.querySelectorAll('.collapsible').forEach(button => {
-        const toolCard = button.closest('[data-tool]');
-        if (!toolCard) return;
-        
-        const toolType = toolCard.dataset.tool;
-        const content = button.nextElementSibling;
-        
-        // Ensure we have a content div
-        if (!content || !content.classList.contains('collapsible-content')) {
-            const newContent = document.createElement('div');
-            newContent.className = 'collapsible-content';
-            button.after(newContent);
-        }
-        
-        // Add tool description
-        const contentDiv = button.nextElementSibling;
-        if (toolDescriptions[toolType]) {
-            contentDiv.innerHTML = `
-                <div class="tool-info">
-                    <h3>${toolDescriptions[toolType].title}</h3>
-                    <pre class="tool-description">${toolDescriptions[toolType].description}</pre>
-                </div>
-            `;
-        }
-        
-        // Add click handler
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const content = this.nextElementSibling;
-            const icon = this.querySelector('i');
-            
-            // Toggle this content
-            content.classList.toggle('expanded');
-            if (icon) {
-                icon.classList.toggle('fa-chevron-down');
-                icon.classList.toggle('fa-chevron-up');
-            }
-            
-            // Close other expanded sections
-            document.querySelectorAll('.collapsible-content.expanded').forEach(otherContent => {
-                if (otherContent !== content) {
-                    otherContent.classList.remove('expanded');
-                    const otherButton = otherContent.previousElementSibling;
-                    const otherIcon = otherButton?.querySelector('i');
-                    if (otherIcon) {
-                        otherIcon.classList.remove('fa-chevron-up');
-                        otherIcon.classList.add('fa-chevron-down');
-                    }
-                }
-            });
-        });
-    });
-});
 
 // Progress Bar Animation
 function updateProgress(toolName, progress) {
@@ -429,12 +403,4 @@ async function exportResults(tool) {
     } catch (error) {
         showNotification(`Export failed: ${error}`, 'error');
     }
-}
-
-// Add click event listeners to all collapsible elements
-document.addEventListener('DOMContentLoaded', function() {
-    const collapsibles = document.querySelectorAll('.collapsible');
-    collapsibles.forEach(collapsible => {
-        collapsible.addEventListener('click', toggleCollapsible);
-    });
-}); 
+} 

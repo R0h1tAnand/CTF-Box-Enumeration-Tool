@@ -1,19 +1,59 @@
 /* Modern CSS with enhanced styling */
 :root {
+    /* Light mode colors */
     --primary-color: #2196F3;
     --success-color: #4CAF50;
     --warning-color: #FFC107;
     --danger-color: #F44336;
     --dark-color: #333;
     --light-color: #f4f4f4;
+    --bg-color: #f0f2f5;
+    --card-bg: white;
+    --text-color: #333;
+    --border-color: #eee;
+    --hover-bg: rgba(33, 150, 243, 0.05);
+    --status-bg: #f8f9fa;
+    --header-bg: linear-gradient(135deg, #2196F3, #1976D2);
+    --input-bg: white;
+    --input-border: #ddd;
+    --input-text: #333;
+    --btn-text: white;
+    --footer-bg: white;
+    --footer-text: #666;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+    --primary-color: #64B5F6;
+    --success-color: #81C784;
+    --warning-color: #FFD54F;
+    --danger-color: #E57373;
+    --dark-color: #f4f4f4;
+    --light-color: #333;
+    --bg-color: #1a1a1a;
+    --card-bg: #2d2d2d;
+    --text-color: #e0e0e0;
+    --border-color: #404040;
+    --hover-bg: rgba(100, 181, 246, 0.1);
+    --status-bg: #363636;
+    --header-bg: linear-gradient(135deg, #1976D2, #1565C0);
+    --input-bg: #363636;
+    --input-border: #505050;
+    --input-text: #e0e0e0;
+    --btn-text: #ffffff;
+    --footer-bg: #2d2d2d;
+    --footer-text: #a0a0a0;
+    --shadow-color: rgba(0, 0, 0, 0.3);
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
-    background-color: #f0f2f5;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .container {
@@ -23,11 +63,11 @@ body {
 }
 
 .header {
-    background: linear-gradient(135deg, var(--primary-color), #1976D2);
-    color: white;
+    background: var(--header-bg);
+    color: var(--btn-text);
     padding: 2rem;
     text-align: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px var(--shadow-color);
 }
 
 .header h1 {
@@ -37,11 +77,12 @@ body {
 }
 
 .scan-form {
-    background: white;
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px var(--shadow-color);
     margin: 2rem 0;
+    border: 1px solid var(--border-color);
 }
 
 .form-group {
@@ -51,26 +92,26 @@ body {
 .form-control {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #ddd;
+    border: 1px solid var(--input-border);
     border-radius: 5px;
     font-size: 1rem;
-    transition: border-color 0.3s;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .form-control:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color), 0.1);
 }
 
 .btn {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 5px;
     background-color: var(--primary-color);
-    color: white;
-    font-size: 1rem;
+    color: var(--btn-text);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
 }
@@ -92,14 +133,12 @@ body {
 }
 
 .status-card {
-    background: white;
+    background: var(--card-bg);
     padding: 1.5rem;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px var(--shadow-color);
+    border: 1px solid var(--border-color);
     transition: all 0.3s ease;
-    border: 1px solid #eee;
-    position: relative;
-    overflow: hidden;
 }
 
 .status-card::before {
@@ -132,7 +171,6 @@ body {
     border-radius: 8px;
     margin-bottom: 1rem;
     font-weight: 500;
-    font-size: 0.95rem;
 }
 
 .idle {
@@ -157,21 +195,23 @@ body {
 }
 
 .results-section {
-    background: white;
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px var(--shadow-color);
+    margin: 2rem 0;
+    border: 1px solid var(--border-color);
 }
 
 .results-list {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
-.results-list li {
-    position: relative;
-    transition: background-color 0.3s;
-    border: 1px solid #e0e0e0;
+.result-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     margin-bottom: 1rem;
     overflow: hidden;
@@ -179,32 +219,39 @@ body {
 
 .result-header {
     padding: 1rem;
-    background: #f8f9fa;
+    background: var(--status-bg);
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 1rem;
     user-select: none;
+    color: var(--text-color);
+    transition: background-color 0.3s;
 }
 
 .result-header:hover {
-    background: #e9ecef;
+    background: var(--hover-bg);
 }
 
-.result-header i.fa-chevron-down {
-    margin-left: auto;
-    transition: transform 0.3s ease;
+.result-header strong {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-color);
 }
 
-.result-header.active i.fa-chevron-down {
-    transform: rotate(180deg);
+.result-header i {
+    color: var(--text-color);
+}
+
+.result-header span {
+    color: var(--text-color);
 }
 
 .result-content {
     display: none;
-    background: white;
-    padding: 0;
-    border-top: 1px solid #e0e0e0;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
 }
 
 .result-content.active {
@@ -214,37 +261,100 @@ body {
 .scan-output {
     margin: 0;
     padding: 1rem;
-    background: #2b2b2b;
-    color: #f8f9fa;
+    background: var(--status-bg);
+    color: var(--text-color);
     font-family: 'Consolas', 'Monaco', monospace;
     font-size: 0.9rem;
     line-height: 1.5;
     white-space: pre-wrap;
     overflow-x: auto;
-    max-height: 400px;
-    overflow-y: auto;
 }
 
-.export-btn {
-    margin: 1rem;
-    background-color: var(--success-color);
-}
-
-.export-btn:hover {
-    background-color: #388e3c;
-}
-
+/* Status badges in results */
 .result-item .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
     margin-left: auto;
 }
 
-.result-header strong {
-    min-width: 150px;
+.result-item .status-badge.idle {
+    background-color: var(--status-bg);
+    color: var(--text-color);
 }
 
-.result-header span:not(.status-badge) {
-    flex: 1;
-    margin-right: 1rem;
+.result-item .status-badge.running {
+    background-color: rgba(33, 150, 243, 0.1);
+    color: var(--primary-color);
+}
+
+.result-item .status-badge.completed {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: var(--success-color);
+}
+
+.result-item .status-badge.failed {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: var(--danger-color);
+}
+
+/* Result links */
+.result-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.result-item a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+/* Export button in results */
+.result-content .export-btn {
+    margin: 1rem;
+    background-color: var(--success-color);
+    color: var(--btn-text);
+}
+
+.result-content .export-btn:hover {
+    background-color: #388e3c;
+}
+
+/* Dark mode specific overrides for results */
+[data-theme="dark"] .result-header {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .result-header:hover {
+    background: var(--hover-bg);
+}
+
+[data-theme="dark"] .scan-output {
+    background: #1a1a1a;
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .result-item {
+    background: var(--card-bg);
+}
+
+[data-theme="dark"] .results-controls {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Chevron icon in results */
+.result-header .fa-chevron-down {
+    transition: transform 0.3s ease;
+    margin-left: auto;
+}
+
+.result-header.active .fa-chevron-down {
+    transform: rotate(180deg);
 }
 
 /* Loading animation for scan output */
@@ -423,14 +533,16 @@ body {
     left: 50%;
     transform: translateX(-50%) translateY(-5px);
     padding: 5px 10px;
-    background: rgba(0,0,0,0.8);
-    color: white;
+    background: var(--card-bg);
+    color: var(--text-color);
     font-size: 0.8rem;
     border-radius: 3px;
+    border: 1px solid var(--border-color);
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
     transition: all 0.2s;
+    box-shadow: 0 2px 5px var(--shadow-color);
 }
 
 [data-tooltip]:hover:before {
@@ -495,9 +607,9 @@ body {
 
 /* Progress Indicator */
 .progress-bar {
+    background-color: var(--status-bg);
     height: 4px;
     width: 100%;
-    background-color: #e9ecef;
     border-radius: 2px;
     overflow: hidden;
     margin-top: 10px;
@@ -513,114 +625,246 @@ body {
 /* Status Badge */
 .status-badge {
     display: inline-block;
-    padding: 3px 8px;
+    padding: 0.25rem 0.5rem;
     border-radius: 12px;
     font-size: 0.8rem;
     font-weight: 500;
-    margin-left: 8px;
 }
 
-.status-badge.idle { background-color: #e9ecef; }
-.status-badge.running { background-color: #cce5ff; }
-.status-badge.completed { background-color: #d4edda; }
-.status-badge.failed { background-color: #f8d7da; }
-
-/* Collapsible Sections */
-.collapsible {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background: none;
-    border: none;
-    border-top: 1px solid #eee;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    color: var(--primary-color);
-    font-size: 0.9rem;
-    transition: background-color 0.2s;
+.status-badge.idle {
+    background-color: var(--status-bg);
+    color: var(--text-color);
 }
 
-.collapsible:hover {
-    background-color: rgba(33, 150, 243, 0.05);
-}
-
-.collapsible i {
-    transition: transform 0.3s;
-}
-
-.collapsible.active i {
-    transform: rotate(180deg);
-}
-
-.collapsible-content {
-    display: none;
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-top: 1px solid #eee;
-}
-
-.collapsible-content.expanded {
-    display: block;
-}
-
-.tool-info {
-    padding: 0.5rem;
-}
-
-.tool-info h3 {
-    color: var(--dark-color);
-    font-size: 1rem;
-    margin-bottom: 0.75rem;
-    font-weight: 600;
-}
-
-.tool-description {
-    color: #666;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    margin: 0;
-    font-family: inherit;
-}
-
-.tool-description ul {
-    margin: 0;
-    padding-left: 1.5rem;
-}
-
-.tool-description li {
-    margin-bottom: 0.5rem;
-}
-
-.result-link {
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: color 0.2s;
-}
-
-.result-link:hover {
-    color: #1976D2;
-    text-decoration: underline;
-}
-
-/* Status-specific styling */
-.idle .status {
-    background-color: #f5f5f5;
-    color: #666;
-}
-
-.running .status {
-    background-color: #e3f2fd;
+.status-badge.running {
+    background-color: rgba(33, 150, 243, 0.1);
     color: var(--primary-color);
 }
 
-.completed .status {
-    background-color: #e8f5e9;
+.status-badge.completed {
+    background-color: rgba(76, 175, 80, 0.1);
     color: var(--success-color);
 }
 
-.failed .status {
-    background-color: #ffebee;
+.status-badge.failed {
+    background-color: rgba(244, 67, 54, 0.1);
     color: var(--danger-color);
+}
+
+/* Dark mode toggle button */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+.theme-toggle i {
+    color: var(--text-color);
+    font-size: 1.2rem;
+}
+
+/* Update status colors for dark mode */
+[data-theme="dark"] .idle {
+    background-color: #2d2d2d;
+    color: #b0b0b0;
+}
+
+[data-theme="dark"] .running {
+    background-color: rgba(33, 150, 243, 0.1);
+    color: var(--primary-color);
+}
+
+[data-theme="dark"] .completed {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: var(--success-color);
+}
+
+[data-theme="dark"] .failed {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: var(--danger-color);
+}
+
+/* Update form elements for dark mode */
+[data-theme="dark"] .form-control {
+    background-color: #2d2d2d;
+    border-color: #444;
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.1);
+}
+
+/* Update scrollbar for dark mode */
+[data-theme="dark"] .scan-output::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+[data-theme="dark"] .scan-output::-webkit-scrollbar-thumb {
+    background: #444;
+}
+
+[data-theme="dark"] .scan-output::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.footer {
+    background: var(--footer-bg);
+    color: var(--footer-text);
+    padding: 1.5rem;
+    text-align: center;
+    margin-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Status-specific colors for dark mode */
+[data-theme="dark"] .status.idle {
+    background-color: #363636;
+    color: #b0b0b0;
+}
+
+[data-theme="dark"] .status.running {
+    background-color: rgba(33, 150, 243, 0.15);
+    color: #64B5F6;
+}
+
+[data-theme="dark"] .status.completed {
+    background-color: rgba(76, 175, 80, 0.15);
+    color: #81C784;
+}
+
+[data-theme="dark"] .status.failed {
+    background-color: rgba(244, 67, 54, 0.15);
+    color: #E57373;
+}
+
+/* Status cards in dark mode */
+[data-theme="dark"] .status-card {
+    background: linear-gradient(145deg, #2d2d2d, #333333);
+    border: 1px solid #404040;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .status-card:hover {
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Progress bar in dark mode */
+[data-theme="dark"] .progress-bar {
+    background-color: #363636;
+    border: 1px solid #404040;
+}
+
+[data-theme="dark"] .progress-bar-fill {
+    background: linear-gradient(90deg, #1976D2, #64B5F6);
+}
+
+/* Form elements in dark mode */
+[data-theme="dark"] .form-control {
+    background-color: #363636;
+    border-color: #505050;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] .form-control:focus {
+    border-color: #64B5F6;
+    box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.2);
+}
+
+/* Buttons in dark mode */
+[data-theme="dark"] .btn {
+    background: linear-gradient(145deg, #1976D2, #1565C0);
+    border: none;
+}
+
+[data-theme="dark"] .btn:hover {
+    background: linear-gradient(145deg, #1565C0, #0D47A1);
+}
+
+[data-theme="dark"] .export-btn {
+    background: linear-gradient(145deg, #43A047, #388E3C);
+}
+
+[data-theme="dark"] .export-btn:hover {
+    background: linear-gradient(145deg, #388E3C, #2E7D32);
+}
+
+/* Results section in dark mode */
+[data-theme="dark"] .results-section {
+    background: linear-gradient(145deg, #2d2d2d, #333333);
+}
+
+[data-theme="dark"] .result-header {
+    background: #363636;
+    border-bottom: 1px solid #404040;
+}
+
+[data-theme="dark"] .result-header:hover {
+    background: #404040;
+}
+
+[data-theme="dark"] .scan-output {
+    background: #262626;
+    border: 1px solid #404040;
+    color: #e0e0e0;
+}
+
+/* Theme toggle in dark mode */
+[data-theme="dark"] .theme-toggle {
+    background: #363636;
+    border: 1px solid #505050;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+    background: #404040;
+}
+
+/* Tooltips in dark mode */
+[data-theme="dark"] [data-tooltip]:before {
+    background-color: #363636;
+    border: 1px solid #505050;
+    color: #e0e0e0;
+}
+
+/* Status badges in dark mode */
+[data-theme="dark"] .status-badge {
+    border: 1px solid #404040;
+}
+
+[data-theme="dark"] .status-badge.idle {
+    background-color: #363636;
+    color: #b0b0b0;
+}
+
+[data-theme="dark"] .status-badge.running {
+    background-color: rgba(33, 150, 243, 0.15);
+    color: #64B5F6;
+}
+
+[data-theme="dark"] .status-badge.completed {
+    background-color: rgba(76, 175, 80, 0.15);
+    color: #81C784;
+}
+
+[data-theme="dark"] .status-badge.failed {
+    background-color: rgba(244, 67, 54, 0.15);
+    color: #E57373;
 } 
