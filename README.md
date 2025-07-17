@@ -1,124 +1,115 @@
-# 🔍 Box-Enum: Multi-Tool Security Scanner
+# Cybersecurity Toolkit Platform
 
-A modern web interface for running multiple security scanning tools simultaneously. Combines the power of Nmap, Dirb, and Gobuster in one sleek dashboard.
+A comprehensive web-based cybersecurity toolkit platform that provides an intuitive interface for running various security scanning tools.
 
+## Project Structure
 
-## ✨ Features
-
-- **🔄 Real-time Scanning**: Monitor scan progress in real-time
-- **🎯 Multiple Tools**: Run Nmap, Dirb, and Gobuster simultaneously
-- **📊 Unified Interface**: All results in one clean dashboard
-- **💫 Modern UI**: Sleek, responsive design with status indicators
-- **📝 Detailed Results**: Comprehensive output from each tool
-- **🔄 Auto-refresh**: Live updates without manual refresh
-
-## 🛠️ Integrated Tools
-
-### Nmap Scanner
-- Network mapping and port scanning
-- Service version detection
-- OS fingerprinting
-- Security vulnerability scanning
-
-### Dirb Scanner
-- Web content discovery
-- Hidden directory enumeration
-- Backup file detection
-- Configuration file scanning
-
-### Gobuster Scanner
-- Directory brute forcing
-- DNS subdomain scanning
-- Virtual host discovery
-- Custom wordlist support
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Python 3.8+
-- Nmap
-- Dirb
-- Gobuster
-- Web browser
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/box-enum.git
-cd box-enum
 ```
+├── backend/                 # Flask API backend
+│   ├── models/             # Database models
+│   ├── routes/             # API route handlers
+│   ├── uploads/            # File upload directory
+│   ├── scan_results/       # Scan results storage
+│   ├── app.py             # Flask application factory
+│   ├── config.py          # Configuration management
+│   └── requirements.txt   # Python dependencies
+├── frontend/               # React frontend application
+│   ├── src/
+│   │   ├── components/    # Reusable React components
+│   │   ├── contexts/      # React context providers
+│   │   ├── hooks/         # Custom React hooks
+│   │   ├── pages/         # Page components
+│   │   ├── services/      # API service functions
+│   │   └── types/         # TypeScript type definitions
+│   ├── package.json       # Node.js dependencies
+│   └── vite.config.ts     # Vite configuration
+└── README.md              # Project documentation
+```
+
+## Technology Stack
+
+### Backend
+- **Flask** - Web framework
+- **SQLAlchemy** - Database ORM
+- **Flask-JWT-Extended** - JWT authentication
+- **Flask-SocketIO** - Real-time communication
+- **Flask-CORS** - Cross-origin resource sharing
+- **Flask-RESTful** - RESTful API development
+
+### Frontend
+- **React 19** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **React Router** - Client-side routing
+- **Axios** - HTTP client
+- **Socket.IO Client** - Real-time communication
+- **React Hook Form** - Form management
+- **TanStack Query** - Server state management
+- **Framer Motion** - Animations
+
+## Setup Instructions
+
+### Backend Setup
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
 
 2. Install Python dependencies:
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-3. Install required tools:
-```bash
-# For Debian/Ubuntu
-sudo apt-get update
-sudo apt-get install nmap dirb gobuster
+3. Copy environment file and configure:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
 
-# For macOS
-brew install nmap dirb gobuster
-```
+4. Run the Flask application:
+   ```bash
+   python app.py
+   ```
 
-4. Start the application:
-```bash
-python box-enum.py
-```
+### Frontend Setup
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
 
-5. Open your browser and navigate to:
-```
-http://localhost:5000
-```
+2. Install Node.js dependencies:
+   ```bash
+   npm install
+   ```
 
-## 🎯 Usage
+3. Copy environment file and configure:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
 
-1. Enter the target IP address in the input field
-2. (Optional) Specify a custom wordlist path for Gobuster
-3. Click "Start Scan" to begin the scanning process
-4. Monitor real-time progress in the status cards
-5. View detailed results by expanding each tool's section
-6. Use the refresh button to update results manually if needed
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-## 🔒 Security Considerations
+## Development
 
-- Only scan systems you have permission to test
-- Be aware of local network and security policies
-- Some scans may trigger security alerts
-- Use responsibly and ethically
+- Backend API runs on `http://localhost:5000`
+- Frontend development server runs on `http://localhost:5173`
+- The Vite dev server is configured to proxy API requests to the backend
 
-## 🤝 Contributing
+## Environment Variables
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+### Backend (.env)
+- `FLASK_ENV` - Flask environment (development/production)
+- `SECRET_KEY` - Flask secret key
+- `JWT_SECRET_KEY` - JWT signing key
+- `DATABASE_URL` - Database connection string
+- `FRONTEND_URL` - Frontend URL for CORS
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Thanks to the creators of Nmap, Dirb, and Gobuster
-- Inspired by various security testing tools
-- Built with Flask and modern web technologies
-
-## 📞 Support
-
-If you encounter any problems or have suggestions:
-1. Check the [Issues](https://github.com/yourusername/box-enum/issues) page
-2. Create a new issue with detailed information
-3. Join our community discussions
-
----
-
-<div align="center">
-Made with ❤️ for the security community
-</div> 
+### Frontend (.env)
+- `VITE_API_BASE_URL` - Backend API base URL
+- `VITE_SOCKET_URL` - Socket.IO server URL
+- `VITE_APP_NAME` - Application name
+- `VITE_APP_VERSION` - Application version
