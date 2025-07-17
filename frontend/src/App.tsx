@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthPage, DashboardPage, ScanPage, HistoryPage, SettingsPage } from './pages';
 import { Layout, ProtectedRoute, SessionWarning } from './components';
 import { authService } from './services/authService';
@@ -80,11 +81,13 @@ function App() {
 
   return (
     <Router>
-      <AuthProvider>
-        <div className="app">
-          <AppContent />
-        </div>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <div className="app">
+            <AppContent />
+          </div>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { ThemeToggle } from './ThemeToggle';
 import './Navigation.css';
 
 export const Navigation: React.FC = () => {
@@ -35,6 +36,7 @@ export const Navigation: React.FC = () => {
             <span className="brand-icon">🛡️</span>
             <span className="brand-text">CyberToolkit</span>
           </Link>
+          <ThemeToggle />
         </div>
       </nav>
     );
@@ -101,6 +103,7 @@ export const Navigation: React.FC = () => {
           </ul>
 
           <div className="nav-user">
+            <ThemeToggle />
             <div className="user-info">
               <span className="user-name">{user?.username}</span>
               <span className="user-email">{user?.email}</span>
