@@ -1,22 +1,11 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { AuthPage } from './pages/AuthPage';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { SessionWarning } from './components/SessionWarning';
+import { AuthPage, DashboardPage, ScanPage, HistoryPage, SettingsPage } from './pages';
+import { Layout, ProtectedRoute, SessionWarning } from './components';
 import { authService } from './services/authService';
 import { initializeSessionManager } from './utils/sessionManager';
 import './App.css';
-
-// Placeholder Dashboard component
-const Dashboard: React.FC = () => {
-  return (
-    <div className="dashboard">
-      <h1>Cybersecurity Toolkit Dashboard</h1>
-      <p>Welcome to your security toolkit!</p>
-    </div>
-  );
-};
 
 const AppContent: React.FC = () => {
   const { sessionWarning, extendSession, logout } = useAuth();
@@ -29,7 +18,39 @@ const AppContent: React.FC = () => {
           path="/dashboard" 
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Layout>
+                <DashboardPage />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/scan" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ScanPage />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/history" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <HistoryPage />
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SettingsPage />
+              </Layout>
             </ProtectedRoute>
           } 
         />

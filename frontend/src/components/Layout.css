@@ -1,0 +1,49 @@
+/* Layout Component Styles */
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--primary-bg, #0a0a0a);
+  color: var(--text-primary, #ffffff);
+}
+
+.layout-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--secondary-bg, #1a1a1a);
+  border-bottom: 1px solid var(--border-color, #333333);
+  backdrop-filter: blur(10px);
+}
+
+.layout-main {
+  flex: 1;
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Mobile-first responsive design */
+@media (min-width: 768px) {
+  .layout-main {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-main {
+    padding: 2rem 3rem;
+  }
+}
+
+/* Light theme support */
+[data-theme="light"] .layout {
+  background: var(--primary-bg, #ffffff);
+  color: var(--text-primary, #212529);
+}
+
+[data-theme="light"] .layout-header {
+  background: var(--secondary-bg, #f8f9fa);
+  border-bottom-color: var(--border-color, #dee2e6);
+}
