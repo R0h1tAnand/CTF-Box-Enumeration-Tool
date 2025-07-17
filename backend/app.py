@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
 from flask_cors import CORS
@@ -24,6 +24,51 @@ def create_app(config_name=None):
     jwt.init_app(app)
     socketio.init_app(app, cors_allowed_origins="*")
     cors.init_app(app)
+    
+    # JWT Configuration and Callbacks
+    from routes.auth import blacklisted_tokens
+    
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        """Check if JWT token is in blacklist."""
+        jti = jwt_payload['jti']
+        return jti in blacklisted_tokens
+    
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        """Handle expired JWT tokens."""
+        return jsonify({
+            'error': True,
+            'message': 'Token has expired',
+            'code': 'TOKEN_EXPIRED'
+        }), 401
+    
+    @jwt.invalid_token_loader
+    def invalid_token_callback(error):
+        """Handle invalid JWT tokens."""
+        return jsonify({
+            'error': True,
+            'message': 'Invalid token',
+            'code': 'INVALID_TOKEN'
+        }), 401
+    
+    @jwt.unauthorized_loader
+    def missing_token_callback(error):
+        """Handle missing JWT tokens."""
+        return jsonify({
+            'error': True,
+            'message': 'Authorization token is required',
+            'code': 'TOKEN_REQUIRED'
+        }), 401
+    
+    @jwt.revoked_token_loader
+    def revoked_token_callback(jwt_header, jwt_payload):
+        """Handle revoked JWT tokens."""
+        return jsonify({
+            'error': True,
+            'message': 'Token has been revoked',
+            'code': 'TOKEN_REVOKED'
+        }), 401
     
     # Initialize Flask-RESTful API
     api = Api(app)

@@ -9,7 +9,6 @@
   - _Requirements: 8.3, 8.4_
 
 - [x] 2. Implement database models and initialization
-
   - Create User model with authentication fields and relationships
   - Create ScanHistory model to store scan records and results
   - Create UserSettings model for user preferences and configuration
@@ -17,10 +16,14 @@
   - _Requirements: 1.1, 1.2, 4.1, 5.1_
 
 - [ ] 3. Build authentication system
+  - [x] 3.1 Create backend authentication API
 
 
 
-  - [ ] 3.1 Create backend authentication API
+
+
+
+
     - Implement JWT-based authentication endpoints (register, login, refresh)
     - Add password hashing and security measures
     - Create user registration and login API routes
