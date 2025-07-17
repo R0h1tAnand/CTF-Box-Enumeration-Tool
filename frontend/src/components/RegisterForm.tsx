@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../contexts/AuthContext';
-import { RegisterData } from '../types/auth';
+import type { RegisterData } from '../types/auth';
 import './Auth.css';
 
 interface RegisterFormProps {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../contexts/AuthContext';
-import { LoginCredentials } from '../types/auth';
+import type { LoginCredentials } from '../types/auth';
 import './Auth.css';
 
 interface LoginFormProps {

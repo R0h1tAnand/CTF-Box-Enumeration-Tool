@@ -110,3 +110,171 @@
   font-size: 1.1rem;
   color: #666;
 }
+
+/* Enhanced loading spinner for authentication */
+.auth-loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.auth-loading-spinner {
+  margin-bottom: 1rem;
+}
+
+.spinner-ring {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+.auth-loading-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Session Warning Modal Styles */
+.session-warning-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.session-warning-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+.session-warning-header h3 {
+  margin: 0 0 1rem 0;
+  color: #dc3545;
+  text-align: center;
+  font-size: 1.25rem;
+}
+
+.session-warning-content {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.session-warning-content p {
+  margin: 0.5rem 0;
+  color: #666;
+}
+
+.session-timer {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #dc3545;
+  margin: 1rem 0;
+  font-family: 'Courier New', monospace;
+}
+
+.session-info {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #007bff;
+}
+
+.session-info small {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.session-warning-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.extend-session-btn,
+.logout-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.extend-session-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.extend-session-btn:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.logout-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.logout-btn:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Dark theme support for session warning */
+@media (prefers-color-scheme: dark) {
+  .session-warning-modal {
+    background: #1a1a1a;
+    color: #ffffff;
+  }
+  
+  .session-warning-content p {
+    color: #cccccc;
+  }
+}

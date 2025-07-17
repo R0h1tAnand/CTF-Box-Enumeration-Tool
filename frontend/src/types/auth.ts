@@ -29,7 +29,11 @@ export interface AuthContextType {
   user: User | null;
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
+  sessionWarning: boolean;
+  extendSession: () => void;
+  sessionTimeRemaining: number;
+  lastActivity: Date | null;
 }
