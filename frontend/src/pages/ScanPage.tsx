@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScanForm, ScanProgress, ScanResults } from '../components/scanning';
 import { ScanConfig } from '../types/scanning';
+import webSocketService from '../services/WebSocketService';
 import './ScanPage.css';
 
 export const ScanPage: React.FC = () => {
@@ -11,6 +12,19 @@ export const ScanPage: React.FC = () => {
   const [scanCompleted, setScanCompleted] = useState(false);
   const [scanResults, setScanResults] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize WebSocket connection when component mounts
+  useEffect(() => {
+    // Connect to WebSocket server
+    webSocketService.connect().catch(err => {
+      console.error('Failed to connect to WebSocket server:', err);
+    });
+
+    // Clean up WebSocket connection when component unmounts
+    return () => {
+      webSocketService.disconnect();
+    };
+  }, []);
 
   const handleStartScan = async (config: ScanConfig) => {
     setIsLoading(true);
@@ -37,6 +51,11 @@ export const ScanPage: React.FC = () => {
       if (response.ok && !data.error) {
         setScanId(data.scan_id);
         setScanConfig(config);
+        
+        // Ensure WebSocket is connected before joining scan room
+        if (!webSocketService.isConnected()) {
+          await webSocketService.connect();
+        }
       } else {
         setError(data.message || 'Failed to start scan');
       }
@@ -52,14 +71,19 @@ export const ScanPage: React.FC = () => {
     if (!scanId) return;
     
     try {
-      await fetch(`/api/scans/${scanId}/stop`, {
+      const response = await fetch(`/api/scans/${scanId}/stop`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to stop scan');
+      }
     } catch (err) {
       console.error('Error stopping scan:', err);
+      setError('Failed to stop scan. Please try again.');
     }
   };
 
@@ -78,6 +102,9 @@ export const ScanPage: React.FC = () => {
       if (response.ok && !data.error) {
         setScanResults(data.data);
         setScanCompleted(true);
+        
+        // Leave scan room when completed
+        webSocketService.leaveScan(scanId);
       } else {
         setError(data.message || 'Failed to fetch scan results');
       }
@@ -88,6 +115,12 @@ export const ScanPage: React.FC = () => {
   };
 
   const handleNewScan = () => {
+    // Leave current scan room if exists
+    if (scanId) {
+      webSocketService.leaveScan(scanId);
+    }
+    
+    // Reset state
     setScanId(null);
     setScanConfig(null);
     setScanCompleted(false);
@@ -95,33 +128,68 @@ export const ScanPage: React.FC = () => {
     setError(null);
   };
 
+  // Page transition variants
+  const pageTransition = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
+    transition: { 
+      type: "spring", 
+      stiffness: 300, 
+      damping: 30 
+    }
+  };
+
   return (
-    <div className="scan-page">
-      <h1>Security Scan</h1>
-      <p className="scan-page__description">
-        Configure and run security scans using various cybersecurity tools.
-      </p>
+    <motion.div 
+      className="scan-page"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        Security Scan
+      </motion.h1>
       
-      {error && (
-        <motion.div 
-          className="scan-page__error"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-        >
-          <p>{error}</p>
-          <button className="scan-page__error-close" onClick={() => setError(null)}>×</button>
-        </motion.div>
-      )}
+      <motion.p 
+        className="scan-page__description"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        Configure and run security scans using various cybersecurity tools.
+      </motion.p>
+      
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            className="scan-page__error"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          >
+            <p>{error}</p>
+            <button 
+              className="scan-page__error-close" 
+              onClick={() => setError(null)}
+              aria-label="Close error message"
+            >
+              ×
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <AnimatePresence mode="wait">
         {!scanId && (
           <motion.div
             key="scan-form"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
+            {...pageTransition}
           >
             <ScanForm onSubmit={handleStartScan} isLoading={isLoading} />
           </motion.div>
@@ -130,10 +198,7 @@ export const ScanPage: React.FC = () => {
         {scanId && scanConfig && !scanCompleted && (
           <motion.div
             key="scan-progress"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
+            {...pageTransition}
           >
             <ScanProgress 
               scanId={scanId} 
@@ -147,21 +212,26 @@ export const ScanPage: React.FC = () => {
         {scanId && scanCompleted && scanResults && (
           <motion.div
             key="scan-results"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
+            {...pageTransition}
           >
             <ScanResults scanId={scanId} results={scanResults} />
             
-            <div className="scan-page__actions">
-              <button className="scan-page__new-scan" onClick={handleNewScan}>
+            <motion.div 
+              className="scan-page__actions"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.3 }}
+            >
+              <button 
+                className="scan-page__new-scan" 
+                onClick={handleNewScan}
+              >
                 Start New Scan
               </button>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };

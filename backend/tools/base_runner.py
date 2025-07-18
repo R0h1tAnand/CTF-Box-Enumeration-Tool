@@ -198,6 +198,10 @@ class BaseToolRunner(ABC):
             output_file_handle: File handle for writing output
         """
         accumulated_output = ""
+        last_progress_update = 0
+        last_output_update = ""
+        output_buffer = []
+        buffer_size = 20  # Keep last 20 lines for output updates
         
         try:
             while self.is_running and self.process and self.process.poll() is None:
@@ -213,12 +217,30 @@ class BaseToolRunner(ABC):
                 # Accumulate output for progress estimation
                 accumulated_output += line
                 
-                # Update progress
-                self.progress = self.estimate_progress(accumulated_output)
+                # Add to output buffer (keep last N lines)
+                output_buffer.append(line)
+                if len(output_buffer) > buffer_size:
+                    output_buffer.pop(0)
                 
-                # Call progress callback if provided
-                if self.progress_callback:
-                    self.progress_callback(self.scan_id, self.get_tool_name(), self.progress, "running")
+                # Update progress
+                new_progress = self.estimate_progress(accumulated_output)
+                progress_changed = abs(new_progress - last_progress_update) >= 1
+                self.progress = new_progress
+                
+                # Get current output buffer as string
+                current_output = ''.join(output_buffer)
+                
+                # Call progress callback if provided and if progress changed or output changed
+                if self.progress_callback and (progress_changed or current_output != last_output_update):
+                    self.progress_callback(
+                        self.scan_id, 
+                        self.get_tool_name(), 
+                        self.progress, 
+                        "running", 
+                        current_output
+                    )
+                    last_progress_update = self.progress
+                    last_output_update = current_output
                 
                 # Small sleep to prevent high CPU usage
                 time.sleep(0.1)
@@ -230,6 +252,12 @@ class BaseToolRunner(ABC):
                 if remaining_output:
                     output_file_handle.write(remaining_output)
                     accumulated_output += remaining_output
+                    
+                    # Add to output buffer
+                    remaining_lines = remaining_output.splitlines(True)
+                    output_buffer.extend(remaining_lines[-buffer_size:])
+                    if len(output_buffer) > buffer_size:
+                        output_buffer = output_buffer[-buffer_size:]
                 
                 # Update status based on return code
                 return_code = self.process.returncode
@@ -243,9 +271,16 @@ class BaseToolRunner(ABC):
                 self.end_time = datetime.now()
                 self.progress = 100 if self.status == "completed" else self.progress
                 
-                # Final progress callback
+                # Final progress callback with complete output
                 if self.progress_callback:
-                    self.progress_callback(self.scan_id, self.get_tool_name(), self.progress, self.status)
+                    final_output = ''.join(output_buffer)
+                    self.progress_callback(
+                        self.scan_id, 
+                        self.get_tool_name(), 
+                        self.progress, 
+                        self.status, 
+                        final_output
+                    )
         
         except Exception as e:
             self.status = "failed"
@@ -256,7 +291,14 @@ class BaseToolRunner(ABC):
             
             # Error progress callback
             if self.progress_callback:
-                self.progress_callback(self.scan_id, self.get_tool_name(), self.progress, "failed")
+                error_output = f"Error: {str(e)}\n" + ''.join(output_buffer)
+                self.progress_callback(
+                    self.scan_id, 
+                    self.get_tool_name(), 
+                    self.progress, 
+                    "failed", 
+                    error_output
+                )
         
         finally:
             # Close output file

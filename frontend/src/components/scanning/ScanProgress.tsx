@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardBody } from '../ui/Card';
-import { ProgressBar } from '../ui/ProgressBar';
+import { ProgressBar, CircularProgress } from '../ui/ProgressBar';
 import { Button } from '../ui/Button';
-import { ScanProgressEvent } from '../../types/scanning';
+import { useScanProgress } from '../../hooks/useScanProgress';
 import './ScanProgress.css';
 
 interface ScanProgressProps {
@@ -19,132 +19,26 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({
   onStop,
   onComplete
 }) => {
-  const [toolProgress, setToolProgress] = useState<Record<string, { 
-    progress: number, 
-    status: 'running' | 'completed' | 'failed' | 'stopped' 
-  }>>({});
-  
-  const [overallProgress, setOverallProgress] = useState(0);
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const {
+    toolProgress,
+    overallProgress,
+    isConnected,
+    isConnecting,
+    error,
+    reconnectAttempts,
+    stopScan
+  } = useScanProgress(scanId, tools, {
+    onComplete,
+    onError: (err) => console.error('Scan progress error:', err)
+  });
 
-  // Initialize tool progress
-  useEffect(() => {
-    const initialProgress: Record<string, { progress: number, status: 'running' | 'completed' | 'failed' | 'stopped' }> = {};
-    
-    tools.forEach(tool => {
-      initialProgress[tool] = {
-        progress: 0,
-        status: 'running'
-      };
-    });
-    
-    setToolProgress(initialProgress);
-  }, [tools]);
-
-  // Calculate overall progress
-  useEffect(() => {
-    if (Object.keys(toolProgress).length === 0) return;
-    
-    const totalProgress = Object.values(toolProgress).reduce((sum, tool) => sum + tool.progress, 0);
-    const calculatedProgress = totalProgress / Object.keys(toolProgress).length;
-    
-    setOverallProgress(calculatedProgress);
-    
-    // Check if all tools are completed or failed
-    const allDone = Object.values(toolProgress).every(tool => 
-      tool.status === 'completed' || tool.status === 'failed' || tool.status === 'stopped'
-    );
-    
-    if (allDone) {
-      onComplete();
-    }
-  }, [toolProgress, onComplete]);
-
-  // Connect to WebSocket
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    
-    // Create WebSocket connection
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/socket.io/?EIO=4&transport=websocket`;
-    
-    const ws = new WebSocket(wsUrl);
-    
-    ws.onopen = () => {
-      setIsConnected(true);
-      console.log('WebSocket connected');
-      
-      // Join scan room
-      ws.send(JSON.stringify({
-        event: 'join_scan',
-        data: {
-          scan_id: scanId,
-          token
-        }
-      }));
-    };
-    
-    ws.onmessage = (event) => {
-      try {
-        // Parse Socket.IO message format
-        const data = event.data;
-        
-        // Socket.IO v4 message format starts with a number followed by JSON
-        if (data.startsWith('42')) {
-          const jsonStr = data.substring(2);
-          const [eventName, eventData] = JSON.parse(jsonStr);
-          
-          if (eventName === 'scan_progress') {
-            handleProgressUpdate(eventData);
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
-    
-    ws.onclose = () => {
-      setIsConnected(false);
-      console.log('WebSocket disconnected');
-    };
-    
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-    
-    setSocket(ws);
-    
-    // Clean up WebSocket connection
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-          event: 'leave_scan',
-          data: {
-            scan_id: scanId
-          }
-        }));
-        ws.close();
-      }
-    };
-  }, [scanId]);
-
-  const handleProgressUpdate = (data: ScanProgressEvent) => {
-    if (data.scanId !== scanId) return;
-    
-    setToolProgress(prev => ({
-      ...prev,
-      [data.tool]: {
-        progress: data.progress,
-        status: data.status
-      }
-    }));
-  };
-
-  const handleStopScan = () => {
+  // Handle stop scan
+  const handleStopScan = async () => {
+    await stopScan();
     onStop();
   };
 
+  // Get variant for progress bar based on status
   const getStatusVariant = (status: string): 'default' | 'success' | 'warning' | 'error' => {
     switch (status) {
       case 'completed':
@@ -158,6 +52,7 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({
     }
   };
 
+  // Get human-readable status label
   const getStatusLabel = (status: string): string => {
     switch (status) {
       case 'running':
@@ -170,6 +65,30 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({
         return 'Stopped';
       default:
         return 'Unknown';
+    }
+  };
+
+  // Animation variants for progress elements
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 24 
+      }
     }
   };
 
@@ -189,8 +108,22 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({
         </div>
       </CardHeader>
       <CardBody>
-        <div className="scan-progress__overall">
-          <h4>Overall Progress</h4>
+        <motion.div 
+          className="scan-progress__overall"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="scan-progress__overall-header">
+            <h4>Overall Progress</h4>
+            <CircularProgress 
+              value={overallProgress} 
+              size={60} 
+              strokeWidth={6}
+              variant={overallProgress === 100 ? 'success' : 'default'}
+              animated
+            />
+          </div>
           <ProgressBar 
             value={overallProgress} 
             showLabel 
@@ -199,26 +132,43 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({
             striped
             animated
           />
-        </div>
+        </motion.div>
         
-        <div className="scan-progress__tools">
+        <motion.div 
+          className="scan-progress__tools"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <h4>Tool Progress</h4>
           
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {Object.entries(toolProgress).map(([tool, data]) => (
               <motion.div
                 key={tool}
                 className="scan-progress__tool"
+                variants={itemVariants}
+                layout
+                layoutId={`tool-${tool}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 30
+                }}
               >
                 <div className="scan-progress__tool-header">
                   <h5>{tool}</h5>
-                  <span className={`scan-progress__status scan-progress__status--${data.status}`}>
+                  <motion.span 
+                    className={`scan-progress__status scan-progress__status--${data.status}`}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 500 }}
+                  >
                     {getStatusLabel(data.status)}
-                  </span>
+                  </motion.span>
                 </div>
                 <ProgressBar 
                   value={data.progress} 
@@ -227,16 +177,40 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({
                   striped={data.status === 'running'}
                   animated={data.status === 'running'}
                 />
+                
+                {data.output && (
+                  <motion.div 
+                    className="scan-progress__output-preview"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <pre>{data.output.split('\n').slice(-3).join('\n')}</pre>
+                  </motion.div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>
-        </div>
+        </motion.div>
         
-        {!isConnected && (
-          <div className="scan-progress__connection-warning">
-            <p>WebSocket connection lost. Reconnecting...</p>
-          </div>
-        )}
+        <AnimatePresence>
+          {!isConnected && (
+            <motion.div 
+              className="scan-progress__connection-warning"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <p>
+                {isConnecting 
+                  ? `WebSocket reconnecting... (Attempt ${reconnectAttempts})` 
+                  : 'WebSocket connection lost. Reconnecting...'}
+              </p>
+              {error && <p className="scan-progress__error-message">{error.message}</p>}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </CardBody>
     </Card>
   );

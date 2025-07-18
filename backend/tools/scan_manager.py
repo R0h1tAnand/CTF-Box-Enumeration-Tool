@@ -332,19 +332,29 @@ class ScanManager:
             BaseToolRunner: Tool runner instance
         """
         # Create progress callback
-        def progress_callback(scan_id, tool, progress, status):
+        def progress_callback(scan_id, tool, progress, status, output=None):
             # Use the emit_scan_progress function if available, otherwise use socketio directly
             if self.emit_scan_progress:
-                self.emit_scan_progress(scan_id, tool, progress, status)
+                self.emit_scan_progress(scan_id, tool, progress, status, output)
             else:
                 # Fallback to direct socketio emit
-                self.socketio.emit('scan_progress', {
-                    'scan_id': scan_id,
+                event_data = {
+                    'scanId': scan_id,
                     'tool': tool,
                     'progress': progress,
                     'status': status,
                     'timestamp': datetime.now().isoformat()
-                }, room=f"scan_{scan_id}")
+                }
+                
+                # Add output if available
+                if output:
+                    # Split by lines and take last 10 to avoid large payloads
+                    output_lines = output.split('\n')
+                    if len(output_lines) > 10:
+                        output_lines = output_lines[-10:]
+                    event_data['output'] = '\n'.join(output_lines)
+                
+                self.socketio.emit('scan_progress', event_data, room=f"scan_{scan_id}")
         
         # Create appropriate runner
         if tool_name == "nmap":

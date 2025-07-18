@@ -28,6 +28,7 @@ export interface ScanProgressEvent {
   scanId: string;
   tool: string;
   progress: number;
-  status: 'running' | 'completed' | 'failed';
+  status: 'running' | 'completed' | 'failed' | 'stopped';
   output?: string;
+  timestamp?: string;
 }
