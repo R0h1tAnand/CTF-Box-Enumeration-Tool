@@ -101,18 +101,17 @@
     - _Requirements: 3.1, 3.2, 3.4_
 
   - [x] 6.3 Add real-time progress tracking with WebSocket
-
-
-
-
-
     - Implement WebSocket connection for live scan updates
     - Create progress tracking system with percentage completion
     - Add animated progress bars and status indicators using Framer Motion
     - Handle WebSocket connection management and error recovery
     - _Requirements: 3.1, 3.2, 7.3_
 
-  - [ ] 6.4 Enhance scan results and export functionality
+  - [x] 6.4 Enhance scan results and export functionality
+
+
+
+
     - Improve results formatting with syntax highlighting
     - Add multiple export formats (TXT, JSON, CSV) with download functionality
     - Implement result filtering and search within results
