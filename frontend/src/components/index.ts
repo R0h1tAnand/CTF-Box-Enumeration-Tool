@@ -10,3 +10,6 @@ export { ThemeToggle } from './ThemeToggle';
 
 // Export UI components
 export * from './ui';
+
+// Export scanning components
+export * from './scanning';

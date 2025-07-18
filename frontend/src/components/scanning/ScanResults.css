@@ -1,0 +1,218 @@
+.scan-results__summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.scan-results__summary-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.scan-results__label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.scan-results__value {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.scan-results__status {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.scan-results__status--running {
+  background-color: var(--accent-color);
+  color: var(--primary-bg);
+}
+
+.scan-results__status--completed {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.scan-results__status--failed {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.scan-results__status--stopped {
+  background-color: var(--warning-color);
+  color: var(--primary-bg);
+}
+
+.scan-results__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.scan-results__tab {
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.scan-results__tab:hover {
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+}
+
+.scan-results__tab--active {
+  background-color: var(--accent-color);
+  color: var(--primary-bg);
+}
+
+.scan-results__view-toggle {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.scan-results__view-button {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.scan-results__view-button:first-child {
+  border-radius: 4px 0 0 4px;
+}
+
+.scan-results__view-button:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.scan-results__view-button--active {
+  background-color: var(--accent-color);
+  color: var(--primary-bg);
+  border-color: var(--accent-color);
+}
+
+.scan-results__content {
+  background-color: var(--secondary-bg);
+  border-radius: 4px;
+  padding: 1rem;
+  overflow: auto;
+  max-height: 500px;
+}
+
+.scan-results__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+
+.scan-results__table th,
+.scan-results__table td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.scan-results__table th {
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.scan-results__table tr:hover td {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.scan-results__raw,
+.scan-results__json {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+.scan-results__json {
+  color: var(--accent-color);
+}
+
+.scan-results__nmap h4,
+.scan-results__gobuster h4,
+.scan-results__dirb h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.scan-results__os {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.scan-results__os-item {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.scan-results__os-name {
+  font-weight: 500;
+}
+
+.scan-results__os-accuracy {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.scan-results__export {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.scan-results__export-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.scan-results__export-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .scan-results__summary {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .scan-results__export {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
