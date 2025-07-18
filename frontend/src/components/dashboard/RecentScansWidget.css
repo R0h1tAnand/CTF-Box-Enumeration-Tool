@@ -1,0 +1,262 @@
+.recent-scans-widget {
+  transition: all 0.3s ease;
+}
+
+.recent-scans-widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 255, 136, 0.1);
+}
+
+/* Loading state */
+.recent-scans-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+  color: var(--text-secondary);
+}
+
+/* Error state */
+.recent-scans-widget.error {
+  border-color: var(--error-color, #ff4444);
+}
+
+.recent-scans-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 2rem;
+}
+
+.error-message {
+  color: var(--error-color, #ff4444);
+  font-weight: 500;
+}
+
+/* Empty state */
+.recent-scans-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  opacity: 0.6;
+}
+
+.empty-message {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Scan list */
+.recent-scans-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.scan-item {
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.scan-item:hover {
+  transform: translateX(4px);
+  border-color: var(--accent-color);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.1);
+}
+
+.scan-item:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Status-based styling */
+.scan-item.success {
+  border-left: 4px solid var(--success-color, #00ff88);
+}
+
+.scan-item.error {
+  border-left: 4px solid var(--error-color, #ff4444);
+}
+
+.scan-item.warning {
+  border-left: 4px solid var(--warning-color, #ffaa00);
+}
+
+.scan-item.secondary {
+  border-left: 4px solid var(--text-secondary);
+}
+
+/* Scan header */
+.scan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.scan-target {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.target-icon {
+  font-size: 1rem;
+}
+
+.target-ip {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: 'Fira Code', 'JetBrains Mono', monospace;
+}
+
+.scan-status {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.status-icon {
+  font-size: 0.875rem;
+}
+
+.status-text {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Scan details */
+.scan-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scan-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.tool-badge {
+  padding: 0.125rem 0.5rem;
+  background: var(--accent-color);
+  color: var(--primary-bg);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.25px;
+}
+
+.scan-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.scan-time {
+  font-weight: 500;
+}
+
+.scan-duration {
+  font-family: 'Fira Code', 'JetBrains Mono', monospace;
+  background: var(--secondary-bg);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+}
+
+/* Error message */
+.scan-error {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid var(--error-color, #ff4444);
+  border-radius: 4px;
+}
+
+.error-text {
+  font-size: 0.75rem;
+  color: var(--error-color, #ff4444);
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .scan-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .scan-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .scan-item {
+    padding: 0.75rem;
+  }
+}
+
+/* Animation for scan items */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.scan-item {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+/* Stagger animation for multiple items */
+.scan-item:nth-child(1) { animation-delay: 0.1s; }
+.scan-item:nth-child(2) { animation-delay: 0.2s; }
+.scan-item:nth-child(3) { animation-delay: 0.3s; }
+.scan-item:nth-child(4) { animation-delay: 0.4s; }
+.scan-item:nth-child(5) { animation-delay: 0.5s; }
+
+/* Running scan animation */
+.scan-item.warning .status-icon {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

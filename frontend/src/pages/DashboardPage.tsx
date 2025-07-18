@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { WelcomeSection } from '../components/dashboard/WelcomeSection';
+import { RecentScansWidget } from '../components/dashboard/RecentScansWidget';
+import { UserStats } from '../components/dashboard/UserStats';
 import { 
   Card, 
   CardHeader, 
@@ -6,120 +10,103 @@ import {
   CardFooter, 
   CardTitle, 
   CardDescription,
-  Button,
-  ProgressBar,
-  CircularProgress,
-  Loading
-} from '../components';
+  Button
+} from '../components/ui';
+import './DashboardPage.css';
 
 export const DashboardPage: React.FC = () => {
-  const [scanProgress] = useState(65);
-  const [isScanning, setIsScanning] = useState(false);
+  const navigate = useNavigate();
 
-  const handleStartScan = () => {
-    setIsScanning(true);
-    // Simulate scan completion after 3 seconds
-    setTimeout(() => setIsScanning(false), 3000);
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'scan':
+        navigate('/scan');
+        break;
+      case 'history':
+        navigate('/history');
+        break;
+      case 'settings':
+        navigate('/settings');
+        break;
+      default:
+        break;
+    }
   };
 
   return (
     <div className="dashboard-page">
-      <h1>Cybersecurity Toolkit Dashboard</h1>
-      <p>Welcome to your security toolkit!</p>
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">Dashboard</h1>
+        <p className="dashboard-subtitle">Monitor your cybersecurity toolkit activities</p>
+      </div>
       
       <div className="dashboard-grid">
-        <Card variant="default" hoverable>
-          <CardHeader>
-            <CardTitle>Recent Scans</CardTitle>
-            <CardDescription>Your latest scanning activities</CardDescription>
-          </CardHeader>
-          <CardBody>
-            <div style={{ marginBottom: '1rem' }}>
-              <ProgressBar 
-                value={scanProgress} 
-                variant="success" 
-                showLabel 
-                label="Last Nmap Scan"
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <ProgressBar 
-                value={45} 
-                variant="warning" 
-                showLabel 
-                label="Gobuster Progress"
-              />
-            </div>
-            <div>
-              <ProgressBar 
-                value={90} 
-                variant="default" 
-                showLabel 
-                label="Dirb Scan"
-              />
-            </div>
-          </CardBody>
-          <CardFooter>
-            <Button variant="outline" size="sm">View All</Button>
-          </CardFooter>
-        </Card>
+        {/* Welcome Section - Full width on top */}
+        <div className="dashboard-welcome">
+          <WelcomeSection />
+        </div>
 
-        <Card variant="elevated" hoverable>
+        {/* Quick Actions Card */}
+        <Card className="dashboard-card quick-actions-card" variant="elevated" hoverable>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Start a new scan or access your tools</CardDescription>
           </CardHeader>
           <CardBody>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="quick-actions">
               <Button 
                 variant="primary" 
                 fullWidth 
-                loading={isScanning}
-                onClick={handleStartScan}
+                onClick={() => handleQuickAction('scan')}
+                className="action-button"
               >
-                {isScanning ? 'Scanning...' : 'Start New Scan'}
+                🔍 Start New Scan
               </Button>
-              <Button variant="secondary" fullWidth>
-                View History
+              <Button 
+                variant="secondary" 
+                fullWidth
+                onClick={() => handleQuickAction('history')}
+                className="action-button"
+              >
+                📊 View History
               </Button>
-              <Button variant="outline" fullWidth>
-                Settings
+              <Button 
+                variant="outline" 
+                fullWidth
+                onClick={() => handleQuickAction('settings')}
+                className="action-button"
+              >
+                ⚙️ Settings
               </Button>
             </div>
           </CardBody>
         </Card>
 
-        <Card variant="outlined" hoverable>
+        {/* User Statistics */}
+        <div className="dashboard-card stats-card">
+          <UserStats />
+        </div>
+
+        {/* Recent Scans Widget */}
+        <div className="dashboard-card recent-scans-card">
+          <RecentScansWidget />
+        </div>
+
+        {/* Placeholder for System Status (Task 5.3) */}
+        <Card className="dashboard-card system-status-card" variant="outlined" hoverable>
           <CardHeader>
             <CardTitle>System Status</CardTitle>
             <CardDescription>Tool availability and performance</CardDescription>
           </CardHeader>
           <CardBody>
-            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', marginBottom: '1rem' }}>
-              <div style={{ textAlign: 'center' }}>
-                <CircularProgress value={100} variant="success" size={60} />
-                <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>Nmap</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <CircularProgress value={85} variant="default" size={60} />
-                <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>Gobuster</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <CircularProgress value={95} variant="success" size={60} />
-                <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>Dirb</div>
-              </div>
+            <div className="placeholder-content">
+              <p>System status widget will be implemented in task 5.3</p>
             </div>
-            {isScanning && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
-                <Loading variant="dots" size="sm" />
-                <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                  System scanning...
-                </span>
-              </div>
-            )}
           </CardBody>
           <CardFooter>
-            <Button variant="ghost" size="sm">System Details</Button>
+            <Button variant="ghost" size="sm">
+              System Details
+            </Button>
           </CardFooter>
         </Card>
       </div>
