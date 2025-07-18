@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { WelcomeSection } from '../components/dashboard/WelcomeSection';
 import { RecentScansWidget } from '../components/dashboard/RecentScansWidget';
 import { UserStats } from '../components/dashboard/UserStats';
+import { SystemStatus } from '../components/dashboard/SystemStatus';
 import { 
   Card, 
   CardHeader, 
@@ -92,23 +93,10 @@ export const DashboardPage: React.FC = () => {
           <RecentScansWidget />
         </div>
 
-        {/* Placeholder for System Status (Task 5.3) */}
-        <Card className="dashboard-card system-status-card" variant="outlined" hoverable>
-          <CardHeader>
-            <CardTitle>System Status</CardTitle>
-            <CardDescription>Tool availability and performance</CardDescription>
-          </CardHeader>
-          <CardBody>
-            <div className="placeholder-content">
-              <p>System status widget will be implemented in task 5.3</p>
-            </div>
-          </CardBody>
-          <CardFooter>
-            <Button variant="ghost" size="sm">
-              System Details
-            </Button>
-          </CardFooter>
-        </Card>
+        {/* System Status Widget */}
+        <div className="dashboard-card system-status-card">
+          <SystemStatus />
+        </div>
       </div>
     </div>
   );

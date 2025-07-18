@@ -78,7 +78,8 @@
     - Implement loading states and error handling
     - _Requirements: 2.1, 2.4_
 
-  - [ ] 5.3 Add user statistics and system status
+  - [x] 5.3 Add user statistics and system status
+
     - Build UserStats component to display scan statistics
     - Create SystemStatus component showing tool availability
     - Implement real-time status updates using WebSocket connection

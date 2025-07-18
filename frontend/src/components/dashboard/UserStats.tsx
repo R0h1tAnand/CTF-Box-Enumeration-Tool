@@ -1,10 +1,56 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card, CardHeader, CardBody, CardTitle, CardDescription } from '../ui';
 import { useDashboardStats } from '../../hooks/useDashboard';
+import { motion, useAnimation } from 'framer-motion';
 import './UserStats.css';
 
 export const UserStats: React.FC = () => {
   const { data: dashboardData, isLoading, error } = useDashboardStats();
+  const controls = useAnimation();
+  const countersInitialized = useRef(false);
+
+  useEffect(() => {
+    if (dashboardData?.stats && !countersInitialized.current) {
+      controls.start({ opacity: 1, y: 0 });
+      initializeCounters();
+      countersInitialized.current = true;
+    }
+  }, [dashboardData, controls]);
+
+  // Function to animate number counters
+  const initializeCounters = () => {
+    const countElements = document.querySelectorAll('.stat-value');
+    
+    countElements.forEach(element => {
+      const target = element.getAttribute('data-value') || '0';
+      const isPercentage = target.toString().includes('%');
+      const targetValue = parseInt(target.replace('%', ''), 10);
+      
+      if (isNaN(targetValue)) return;
+      
+      let startValue = 0;
+      const duration = 1000;
+      const startTime = performance.now();
+      
+      const updateCounter = (currentTime: number) => {
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+        
+        // Easing function for smooth animation
+        const easeOutQuad = (t: number) => t * (2 - t);
+        const easedProgress = easeOutQuad(progress);
+        
+        const currentValue = Math.floor(startValue + (targetValue - startValue) * easedProgress);
+        element.textContent = isPercentage ? `${currentValue}%` : currentValue.toString();
+        
+        if (progress < 1) {
+          requestAnimationFrame(updateCounter);
+        }
+      };
+      
+      requestAnimationFrame(updateCounter);
+    });
+  };
 
   if (isLoading) {
     return (
@@ -123,19 +169,28 @@ export const UserStats: React.FC = () => {
       <CardBody>
         <div className="stats-grid">
           {statItems.map((item, index) => (
-            <div
+            <motion.div
               key={item.key}
               className={`stat-item ${item.color}`}
-              style={{ animationDelay: `${index * 0.1}s` }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={controls}
+              transition={{ delay: index * 0.1 }}
             >
-              <div className="stat-icon">{item.icon}</div>
+              <motion.div 
+                className="stat-icon"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: index * 0.1 + 0.2, type: "spring", stiffness: 200 }}
+              >
+                {item.icon}
+              </motion.div>
               <div className="stat-content">
                 <div className="stat-value" data-value={item.value}>
                   {item.value}
                 </div>
                 <div className="stat-label">{item.label}</div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </CardBody>
