@@ -6,11 +6,15 @@ from flask_restful import Api
 from config import config
 from database import db, init_db, create_tables
 import os
+from datetime import datetime
 
 # Initialize extensions
 jwt = JWTManager()
 socketio = SocketIO()
 cors = CORS()
+
+# Import WebSocket handlers
+from tools.websocket_handlers import init_websocket_handlers
 
 def create_app(config_name=None):
     app = Flask(__name__)
@@ -24,6 +28,10 @@ def create_app(config_name=None):
     jwt.init_app(app)
     socketio.init_app(app, cors_allowed_origins="*")
     cors.init_app(app)
+    
+    # Initialize WebSocket handlers
+    emit_scan_progress = init_websocket_handlers(socketio)
+    app.config['EMIT_SCAN_PROGRESS'] = emit_scan_progress
     
     # JWT Configuration and Callbacks
     from routes.auth import blacklisted_tokens

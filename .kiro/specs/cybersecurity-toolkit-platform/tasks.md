@@ -79,7 +79,6 @@
     - _Requirements: 2.1, 2.4_
 
   - [x] 5.3 Add user statistics and system status
-
     - Build UserStats component to display scan statistics
     - Create SystemStatus component showing tool availability
     - Implement real-time status updates using WebSocket connection
@@ -87,7 +86,12 @@
     - _Requirements: 2.3_
 
 - [ ] 6. Build scanning system with React frontend
-  - [ ] 6.1 Create backend scanning API and tool runners
+  - [x] 6.1 Create backend scanning API and tool runners
+
+
+
+
+
     - Implement scanning API endpoints for starting, stopping, and monitoring scans
     - Create modular tool runner architecture with abstract base class
     - Implement separate runner classes for Nmap, Gobuster, and Dirb
