@@ -1,0 +1,314 @@
+/* Progress wrapper */
+.progress-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Progress label */
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.progress-label__text {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.progress-label__percentage {
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+/* Progress bar base */
+.progress-bar {
+  position: relative;
+  background: var(--secondary-bg);
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+/* Progress bar sizes */
+.progress-bar--sm {
+  height: 0.5rem;
+}
+
+.progress-bar--md {
+  height: 0.75rem;
+}
+
+.progress-bar--lg {
+  height: 1rem;
+}
+
+/* Progress bar fill */
+.progress-bar__fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Progress bar variants */
+.progress-bar--default .progress-bar__fill {
+  background: linear-gradient(90deg, var(--accent-color), var(--accent-secondary));
+}
+
+.progress-bar--success .progress-bar__fill {
+  background: linear-gradient(90deg, var(--success-color), #00cc66);
+}
+
+.progress-bar--warning .progress-bar__fill {
+  background: linear-gradient(90deg, var(--warning-color), #ff8800);
+}
+
+.progress-bar--error .progress-bar__fill {
+  background: linear-gradient(90deg, var(--error-color), #ff6666);
+}
+
+/* Striped progress bars */
+.progress-bar--striped .progress-bar__fill {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+}
+
+/* Animated stripes */
+.progress-bar--animated.progress-bar--striped .progress-bar__fill {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  0% {
+    background-position: 1rem 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* Circular progress */
+.circular-progress {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circular-progress__svg {
+  transform: rotate(-90deg);
+}
+
+.circular-progress__background {
+  opacity: 0.3;
+}
+
+.circular-progress__fill {
+  transition: stroke-dashoffset 1s ease-out;
+}
+
+.circular-progress__fill--default {
+  stroke: var(--accent-color);
+}
+
+.circular-progress__fill--success {
+  stroke: var(--success-color);
+}
+
+.circular-progress__fill--warning {
+  stroke: var(--warning-color);
+}
+
+.circular-progress__fill--error {
+  stroke: var(--error-color);
+}
+
+.circular-progress__label {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Step progress */
+.step-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.step-progress__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  position: relative;
+}
+
+.step-progress__indicator {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 2px solid var(--border-color);
+  background: var(--secondary-bg);
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.step-progress__indicator--active {
+  border-color: var(--accent-color);
+  background: var(--accent-color);
+  color: var(--primary-bg);
+  box-shadow: 0 0 0 4px rgba(0, 255, 136, 0.2);
+}
+
+.step-progress__indicator--completed {
+  border-color: var(--success-color);
+  background: var(--success-color);
+  color: white;
+}
+
+.step-progress__indicator--error {
+  border-color: var(--error-color);
+  background: var(--error-color);
+  color: white;
+}
+
+.step-progress__check,
+.step-progress__error {
+  font-size: 1rem;
+}
+
+.step-progress__number {
+  font-size: 0.875rem;
+}
+
+.step-progress__label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 6rem;
+  line-height: 1.2;
+}
+
+.step-progress__connector {
+  position: absolute;
+  top: 1rem;
+  left: calc(50% + 1rem);
+  right: calc(-50% + 1rem);
+  height: 2px;
+  background: var(--border-color);
+  z-index: -1;
+}
+
+.step-progress__line {
+  height: 100%;
+  background: var(--success-color);
+  transform-origin: left;
+  transition: transform 0.5s ease-out;
+}
+
+.step-progress__line--completed {
+  transform: scaleX(1);
+}
+
+/* Responsive step progress */
+@media (max-width: 768px) {
+  .step-progress {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .step-progress__item {
+    flex-direction: row;
+    width: 100%;
+    text-align: left;
+  }
+  
+  .step-progress__connector {
+    top: calc(50% + 2rem);
+    left: 1rem;
+    right: auto;
+    width: 2px;
+    height: 2rem;
+    background: var(--border-color);
+  }
+  
+  .step-progress__line {
+    width: 100%;
+    transform-origin: top;
+  }
+  
+  .step-progress__label {
+    max-width: none;
+    text-align: left;
+  }
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .progress-bar--striped .progress-bar__fill {
+  background-image: linear-gradient(
+    45deg,
+    rgba(0, 0, 0, 0.1) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.1) 75%,
+    transparent 75%,
+    transparent
+  );
+}
+
+[data-theme="light"] .step-progress__indicator--active {
+  color: white;
+  box-shadow: 0 0 0 4px rgba(0, 122, 204, 0.2);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar__fill,
+  .circular-progress__fill,
+  .step-progress__line {
+    transition: none;
+  }
+  
+  .progress-bar--animated.progress-bar--striped .progress-bar__fill {
+    animation: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .progress-bar {
+    border-width: 2px;
+  }
+  
+  .step-progress__indicator {
+    border-width: 3px;
+  }
+}

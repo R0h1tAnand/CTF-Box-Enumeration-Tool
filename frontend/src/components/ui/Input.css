@@ -1,0 +1,252 @@
+/* Input wrapper */
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-wrapper.input-field--full-width,
+.input-wrapper.textarea-field--full-width {
+  width: 100%;
+}
+
+/* Input label */
+.input-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.input-label__required {
+  color: var(--error-color);
+  margin-left: 0.25rem;
+}
+
+/* Input container */
+.input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Input field base styles */
+.input-field,
+.textarea-field {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.input-field:focus,
+.textarea-field:focus,
+.input-field--focused,
+.textarea-field--focused {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.input-field--error,
+.textarea-field--error {
+  border-color: var(--error-color);
+}
+
+.input-field--error:focus,
+.textarea-field--error:focus {
+  border-color: var(--error-color);
+  box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.1);
+}
+
+/* Input sizes */
+.input-field--sm {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  min-height: 2rem;
+}
+
+.input-field--md {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  min-height: 2.5rem;
+}
+
+.input-field--lg {
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+  min-height: 3rem;
+}
+
+/* Textarea sizes */
+.textarea-field--sm {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  min-height: 4rem;
+}
+
+.textarea-field--md {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  min-height: 5rem;
+}
+
+.textarea-field--lg {
+  padding: 1rem 1.25rem;
+  font-size: 1.125rem;
+  min-height: 6rem;
+}
+
+/* Input variants */
+.input-field--filled,
+.textarea-field--filled {
+  background: var(--tertiary-bg);
+  border: 1px solid transparent;
+}
+
+.input-field--filled:focus,
+.textarea-field--filled:focus {
+  background: var(--secondary-bg);
+  border-color: var(--accent-color);
+}
+
+.input-field--outlined,
+.textarea-field--outlined {
+  background: transparent;
+  border: 2px solid var(--border-color);
+}
+
+.input-field--outlined:focus,
+.textarea-field--outlined:focus {
+  border-color: var(--accent-color);
+}
+
+/* Input with icons */
+.input-field--with-icons {
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+}
+
+.input-field--with-icons.input-field--sm {
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.input-field--with-icons.input-field--lg {
+  padding-left: 3rem;
+  padding-right: 3rem;
+}
+
+/* Input icons */
+.input-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-icon--start {
+  left: 0.75rem;
+}
+
+.input-icon--end {
+  right: 0.75rem;
+}
+
+.input-field--sm ~ .input-icon--start {
+  left: 0.5rem;
+}
+
+.input-field--sm ~ .input-icon--end {
+  right: 0.5rem;
+}
+
+.input-field--lg ~ .input-icon--start {
+  left: 1rem;
+}
+
+.input-field--lg ~ .input-icon--end {
+  right: 1rem;
+}
+
+/* Textarea resize options */
+.textarea-field--resize-none {
+  resize: none;
+}
+
+.textarea-field--resize-vertical {
+  resize: vertical;
+}
+
+.textarea-field--resize-horizontal {
+  resize: horizontal;
+}
+
+.textarea-field--resize-both {
+  resize: both;
+}
+
+/* Input messages */
+.input-message {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+.input-message--error {
+  color: var(--error-color);
+}
+
+.input-message--helper {
+  color: var(--text-secondary);
+}
+
+/* Placeholder styles */
+.input-field::placeholder,
+.textarea-field::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* Disabled state */
+.input-field:disabled,
+.textarea-field:disabled {
+  background: var(--tertiary-bg);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .input-field:focus,
+[data-theme="light"] .textarea-field:focus,
+[data-theme="light"] .input-field--focused,
+[data-theme="light"] .textarea-field--focused {
+  box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.1);
+}
+
+[data-theme="light"] .input-field--error:focus,
+[data-theme="light"] .textarea-field--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+/* Animation for focus ring */
+@keyframes focusRing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+  }
+}
+
+.input-field:focus,
+.textarea-field:focus {
+  animation: focusRing 0.3s ease-out;
+}

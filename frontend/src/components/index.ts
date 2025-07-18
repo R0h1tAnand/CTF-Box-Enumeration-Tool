@@ -7,3 +7,6 @@ export { Layout } from './Layout';
 export { Navigation } from './Navigation';
 export { Footer } from './Footer';
 export { ThemeToggle } from './ThemeToggle';
+
+// Export UI components
+export * from './ui';
