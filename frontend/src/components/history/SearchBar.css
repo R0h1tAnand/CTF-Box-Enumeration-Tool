@@ -1,0 +1,107 @@
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0 8px;
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar.focused {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.2);
+}
+
+.search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--text-secondary);
+  margin-right: 8px;
+}
+
+.search-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 16px;
+  padding: 12px 0;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.clear-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin: 0 4px;
+  color: var(--text-secondary);
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.clear-button:hover {
+  background-color: rgba(var(--text-secondary-rgb), 0.1);
+}
+
+.clear-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.search-button {
+  background-color: var(--accent-color);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-button:hover {
+  background-color: var(--accent-color-hover);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .search-bar {
+    max-width: 100%;
+  }
+  
+  .search-button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Highlight search results */
+.highlight {
+  background-color: rgba(var(--accent-color-rgb), 0.2);
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 500;
+}

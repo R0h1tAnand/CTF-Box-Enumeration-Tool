@@ -5,11 +5,13 @@ import './HistoryFilters.css';
 interface HistoryFiltersProps {
   onFilterChange: (filters: FilterType) => void;
   initialFilters?: FilterType;
+  disabled?: boolean;
 }
 
 export const HistoryFilters: React.FC<HistoryFiltersProps> = ({ 
   onFilterChange, 
-  initialFilters = {} 
+  initialFilters = {},
+  disabled = false
 }) => {
   // Available tools for filtering
   const availableTools = ['nmap', 'gobuster', 'dirb'];
@@ -77,7 +79,13 @@ export const HistoryFilters: React.FC<HistoryFiltersProps> = ({
   }, []);
   
   return (
-    <div className="history-filters">
+    <div className={`history-filters ${disabled ? 'disabled' : ''}`}>
+      {disabled && (
+        <div className="filters-disabled-message">
+          <p>Filters are disabled during search mode</p>
+          <p>Clear your search to use filters again</p>
+        </div>
+      )}
       <div className="filter-section">
         <h3>Date Range</h3>
         <div className="date-filters">
@@ -89,6 +97,7 @@ export const HistoryFilters: React.FC<HistoryFiltersProps> = ({
               name="startDate"
               value={filters.startDate}
               onChange={handleInputChange}
+              disabled={disabled}
             />
           </div>
           
@@ -100,6 +109,7 @@ export const HistoryFilters: React.FC<HistoryFiltersProps> = ({
               name="endDate"
               value={filters.endDate}
               onChange={handleInputChange}
+              disabled={disabled}
             />
           </div>
         </div>
@@ -112,7 +122,8 @@ export const HistoryFilters: React.FC<HistoryFiltersProps> = ({
             <div 
               key={tool} 
               className={`tool-filter-item ${(filters.tools || []).includes(tool) ? 'selected' : ''}`}
-              onClick={() => handleToolToggle(tool)}
+              onClick={() => !disabled && handleToolToggle(tool)}
+              aria-disabled={disabled}
             >
               {tool}
             </div>
@@ -128,6 +139,7 @@ export const HistoryFilters: React.FC<HistoryFiltersProps> = ({
           placeholder="IP address or hostname"
           value={filters.target}
           onChange={handleInputChange}
+          disabled={disabled}
         />
       </div>
       
@@ -137,6 +149,7 @@ export const HistoryFilters: React.FC<HistoryFiltersProps> = ({
           name="status" 
           value={filters.status} 
           onChange={handleInputChange}
+          disabled={disabled}
         >
           <option value="">All statuses</option>
           {statusOptions.map(status => (
@@ -148,10 +161,18 @@ export const HistoryFilters: React.FC<HistoryFiltersProps> = ({
       </div>
       
       <div className="filter-actions">
-        <button className="filter-button apply" onClick={applyFilters}>
+        <button 
+          className="filter-button apply" 
+          onClick={applyFilters}
+          disabled={disabled}
+        >
           Apply Filters
         </button>
-        <button className="filter-button reset" onClick={resetFilters}>
+        <button 
+          className="filter-button reset" 
+          onClick={resetFilters}
+          disabled={disabled}
+        >
           Reset
         </button>
       </div>

@@ -136,4 +136,21 @@
   .scan-status {
     align-self: flex-start;
   }
+}/
+* Search result highlighting */
+.highlight {
+  background-color: rgba(var(--accent-color-rgb), 0.2);
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+/* Empty state for search results */
+.empty-state p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.empty-state p strong {
+  color: var(--accent-color);
 }

@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { historyService, HistoryFilters } from '../../services/historyService';
-import { ScanHistory } from '../../types/scanning';
+import type { ScanHistory } from '../../types/scanning';
+import { highlightText } from '../../utils/highlightText';
 import './ScanHistoryList.css';
 
 interface ScanHistoryListProps {
   filters: HistoryFilters;
+  searchQuery?: string;
+  isSearchMode?: boolean;
   onSelectScan: (scan: ScanHistory) => void;
 }
 
-export const ScanHistoryList: React.FC<ScanHistoryListProps> = ({ filters, onSelectScan }) => {
+export const ScanHistoryList: React.FC<ScanHistoryListProps> = ({ 
+  filters, 
+  searchQuery = '', 
+  isSearchMode = false, 
+  onSelectScan 
+}) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Use React Query's useInfiniteQuery for pagination and infinite scroll
@@ -21,13 +29,17 @@ export const ScanHistoryList: React.FC<ScanHistoryListProps> = ({ filters, onSel
     isError,
     error
   } = useInfiniteQuery({
-    queryKey: ['scanHistory', filters],
+    queryKey: isSearchMode ? ['scanSearch', searchQuery] : ['scanHistory', filters],
     queryFn: ({ pageParam = 1 }) => {
-      return historyService.getScanHistory({
-        ...filters,
-        page: pageParam,
-        limit: 10
-      });
+      if (isSearchMode && searchQuery) {
+        return historyService.searchScans(searchQuery, pageParam, 10);
+      } else {
+        return historyService.getScanHistory({
+          ...filters,
+          page: pageParam,
+          limit: 10
+        });
+      }
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.page < lastPage.totalPages) {
@@ -35,7 +47,8 @@ export const ScanHistoryList: React.FC<ScanHistoryListProps> = ({ filters, onSel
       }
       return undefined;
     },
-    initialPageParam: 1
+    initialPageParam: 1,
+    enabled: !isSearchMode || (isSearchMode && searchQuery.length > 0)
   });
 
   // Handle infinite scroll
@@ -100,7 +113,12 @@ export const ScanHistoryList: React.FC<ScanHistoryListProps> = ({ filters, onSel
               onClick={() => onSelectScan(scan)}
             >
               <div className="scan-history-header">
-                <div className="scan-target">{scan.target_ip}</div>
+                <div className="scan-target">
+                  {isSearchMode && searchQuery 
+                    ? highlightText(scan.target_ip, searchQuery)
+                    : scan.target_ip
+                  }
+                </div>
                 <div className={`scan-status ${getStatusClass(scan.status)}`}>
                   {scan.status}
                 </div>
@@ -109,7 +127,12 @@ export const ScanHistoryList: React.FC<ScanHistoryListProps> = ({ filters, onSel
               <div className="scan-history-details">
                 <div className="scan-tools">
                   {scan.tools_used.map((tool, index) => (
-                    <span key={index} className="tool-badge">{tool}</span>
+                    <span key={index} className="tool-badge">
+                      {isSearchMode && searchQuery 
+                        ? highlightText(tool, searchQuery)
+                        : tool
+                      }
+                    </span>
                   ))}
                 </div>
                 
@@ -139,7 +162,10 @@ export const ScanHistoryList: React.FC<ScanHistoryListProps> = ({ filters, onSel
       
       {!isFetching && data?.pages[0].data.length === 0 && (
         <div className="empty-state">
-          <p>No scan history found matching your filters.</p>
+          {isSearchMode 
+            ? <p>No results found for "{searchQuery}". Try a different search term.</p>
+            : <p>No scan history found matching your filters.</p>
+          }
         </div>
       )}
     </div>
