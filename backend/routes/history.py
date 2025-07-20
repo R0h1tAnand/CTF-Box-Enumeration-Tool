@@ -74,12 +74,34 @@ def get_scan_history():
 @jwt_required()
 def get_scan_details(scan_id):
     """Get detailed information about a specific scan."""
-    # Placeholder implementation - will be completed in later tasks
-    return jsonify({
-        'id': scan_id,
-        'status': 'completed',
-        'results': {}
-    })
+    from models import ScanHistory
+    import os
+    import json
+    
+    # Get current user ID
+    user_id = get_jwt_identity()
+    
+    # Find the scan in the database
+    scan = ScanHistory.query.filter_by(id=scan_id, user_id=user_id).first()
+    
+    if not scan:
+        return jsonify({'error': 'Scan not found or access denied'}), 404
+    
+    # Get the scan details
+    scan_data = scan.to_dict()
+    
+    # If there's a results path, try to load the results
+    if scan.results_path and os.path.exists(scan.results_path):
+        try:
+            with open(scan.results_path, 'r') as f:
+                results = f.read()
+                scan_data['results'] = results
+        except Exception as e:
+            scan_data['results'] = f"Error loading results: {str(e)}"
+    else:
+        scan_data['results'] = "No results available"
+    
+    return jsonify(scan_data)
 
 @history_bp.route('/search', methods=['GET'])
 @jwt_required()
@@ -140,3 +162,148 @@ def search_scans():
         'limit': limit,
         'totalPages': total_pages
     })
+@history_b
+p.route('/scans/<int:scan_id>/rerun', methods=['POST'])
+@jwt_required()
+def rerun_scan(scan_id):
+    """Re-run a previous scan with the same configuration."""
+    from models import ScanHistory
+    from database import db
+    from datetime import datetime
+    import json
+    import os
+    
+    # Get current user ID
+    user_id = get_jwt_identity()
+    
+    # Find the scan in the database
+    scan = ScanHistory.query.filter_by(id=scan_id, user_id=user_id).first()
+    
+    if not scan:
+        return jsonify({'error': 'Scan not found or access denied'}), 404
+    
+    # Create a new scan with the same configuration
+    new_scan = ScanHistory(
+        user_id=user_id,
+        target_ip=scan.target_ip,
+        tools_used=scan.tools_used,
+        status='queued',
+        started_at=datetime.utcnow(),
+        scan_config=scan.scan_config
+    )
+    
+    # Save to database
+    db.session.add(new_scan)
+    db.session.commit()
+    
+    # In a real implementation, we would trigger the scan execution here
+    # For now, we'll just return the new scan ID
+    
+    return jsonify({'scanId': new_scan.id, 'message': 'Scan queued for execution'})
+
+@history_bp.route('/scans/<int:scan_id>/export', methods=['GET'])
+@jwt_required()
+def export_scan_results(scan_id):
+    """Export scan results in different formats."""
+    from models import ScanHistory
+    from flask import send_file
+    import os
+    import json
+    import csv
+    import tempfile
+    
+    # Get current user ID
+    user_id = get_jwt_identity()
+    
+    # Get requested format
+    format_type = request.args.get('format', 'json')
+    if format_type not in ['json', 'txt', 'csv']:
+        return jsonify({'error': 'Invalid format requested'}), 400
+    
+    # Find the scan in the database
+    scan = ScanHistory.query.filter_by(id=scan_id, user_id=user_id).first()
+    
+    if not scan:
+        return jsonify({'error': 'Scan not found or access denied'}), 404
+    
+    # Get scan results
+    results = {}
+    if scan.results_path and os.path.exists(scan.results_path):
+        try:
+            with open(scan.results_path, 'r') as f:
+                results = f.read()
+        except Exception as e:
+            return jsonify({'error': f'Error loading results: {str(e)}'}), 500
+    else:
+        return jsonify({'error': 'No results available for this scan'}), 404
+    
+    # Create temporary file for the export
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    
+    try:
+        if format_type == 'json':
+            # For JSON, we'll create a structured object with scan metadata
+            export_data = {
+                'scan_id': scan.id,
+                'target_ip': scan.target_ip,
+                'tools_used': scan.tools_used,
+                'status': scan.status,
+                'started_at': scan.started_at.isoformat() if scan.started_at else None,
+                'completed_at': scan.completed_at.isoformat() if scan.completed_at else None,
+                'results': results
+            }
+            
+            with open(temp_file.name, 'w') as f:
+                json.dump(export_data, f, indent=2)
+                
+            mime_type = 'application/json'
+            filename = f'scan_{scan_id}.json'
+            
+        elif format_type == 'txt':
+            # For TXT, we'll create a simple text report
+            with open(temp_file.name, 'w') as f:
+                f.write(f"Scan ID: {scan.id}\n")
+                f.write(f"Target: {scan.target_ip}\n")
+                f.write(f"Tools: {', '.join(scan.tools_used)}\n")
+                f.write(f"Status: {scan.status}\n")
+                f.write(f"Started: {scan.started_at}\n")
+                if scan.completed_at:
+                    f.write(f"Completed: {scan.completed_at}\n")
+                f.write("\n--- RESULTS ---\n\n")
+                f.write(results)
+                
+            mime_type = 'text/plain'
+            filename = f'scan_{scan_id}.txt'
+            
+        elif format_type == 'csv':
+            # For CSV, we'll create a simple CSV with basic scan info
+            with open(temp_file.name, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Scan ID', 'Target', 'Tools', 'Status', 'Started', 'Completed'])
+                writer.writerow([
+                    scan.id,
+                    scan.target_ip,
+                    ', '.join(scan.tools_used),
+                    scan.status,
+                    scan.started_at,
+                    scan.completed_at or 'N/A'
+                ])
+                writer.writerow([])
+                writer.writerow(['Results'])
+                writer.writerow([results])
+                
+            mime_type = 'text/csv'
+            filename = f'scan_{scan_id}.csv'
+        
+        # Send the file
+        return send_file(
+            temp_file.name,
+            mimetype=mime_type,
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        # Clean up the temporary file
+        os.unlink(temp_file.name)
+        return jsonify({'error': f'Error exporting results: {str(e)}'}), 500

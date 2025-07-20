@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ScanHistoryList, HistoryFilters, SearchBar } from '../components/history';
-import { HistoryFilters as FilterType } from '../services/historyService';
+import { ScanHistoryList, HistoryFilters, SearchBar, ScanDetailModal, ScanComparisonModal } from '../components/history';
+import { historyService, HistoryFilters as FilterType } from '../services/historyService';
 import type { ScanHistory } from '../types/scanning';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import './HistoryPage.css';
 
 export const HistoryPage: React.FC = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<FilterType>({});
   const [selectedScan, setSelectedScan] = useState<ScanHistory | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearchMode, setIsSearchMode] = useState<boolean>(false);
+  const [isCompareMode, setIsCompareMode] = useState<boolean>(false);
+  const [compareScanId, setCompareScanId] = useState<number | null>(null);
   
   // Handle filter changes
   const handleFilterChange = (newFilters: FilterType) => {
@@ -43,7 +48,40 @@ export const HistoryPage: React.FC = () => {
   // Handle scan selection
   const handleSelectScan = (scan: ScanHistory) => {
     setSelectedScan(scan);
-    // In a future task, this will open the ScanDetailModal
+  };
+  
+  // Handle scan re-run
+  const handleRerunScan = async (scanId: number) => {
+    try {
+      const result = await historyService.rerunScan(scanId);
+      toast.success('Scan re-execution started successfully');
+      
+      // Navigate to the scanning page with the new scan ID
+      navigate(`/scan/${result.scanId}`);
+      
+      // Close the modal
+      setSelectedScan(null);
+    } catch (error) {
+      console.error('Failed to re-run scan:', error);
+      toast.error('Failed to re-run scan. Please try again.');
+    }
+  };
+  
+  // Handle scan comparison
+  const handleCompareScan = (scanId: number) => {
+    setCompareScanId(scanId);
+    setIsCompareMode(true);
+    setSelectedScan(null);
+  };
+  
+  // Close modals
+  const handleCloseDetailModal = () => {
+    setSelectedScan(null);
+  };
+  
+  const handleCloseCompareModal = () => {
+    setIsCompareMode(false);
+    setCompareScanId(null);
   };
   
   return (
@@ -80,12 +118,22 @@ export const HistoryPage: React.FC = () => {
         </div>
       </div>
       
-      {/* Placeholder for ScanDetailModal - will be implemented in task 7.3 */}
+      {/* Scan Detail Modal */}
       {selectedScan && (
-        <div className="scan-detail-placeholder">
-          <p>Scan detail modal will be implemented in task 7.3</p>
-          <p>Selected scan ID: {selectedScan.id}</p>
-        </div>
+        <ScanDetailModal
+          scan={selectedScan}
+          onClose={handleCloseDetailModal}
+          onRerun={handleRerunScan}
+          onCompare={handleCompareScan}
+        />
+      )}
+      
+      {/* Scan Comparison Modal */}
+      {isCompareMode && compareScanId && (
+        <ScanComparisonModal
+          primaryScanId={compareScanId}
+          onClose={handleCloseCompareModal}
+        />
       )}
     </div>
   );
