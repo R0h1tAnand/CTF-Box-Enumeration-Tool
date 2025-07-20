@@ -13,3 +13,6 @@ export * from './ui';
 
 // Export scanning components
 export * from './scanning';
+
+// Export history components
+export * from './history';

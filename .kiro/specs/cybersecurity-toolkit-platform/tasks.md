@@ -108,18 +108,16 @@
     - _Requirements: 3.1, 3.2, 7.3_
 
   - [x] 6.4 Enhance scan results and export functionality
-
-
-
-
     - Improve results formatting with syntax highlighting
     - Add multiple export formats (TXT, JSON, CSV) with download functionality
     - Implement result filtering and search within results
     - Create shareable scan result links
     - _Requirements: 3.3, 3.6_
 
-- [ ] 7. Build scan history system
-  - [ ] 7.1 Create React history page and filtering
+- [-] 7. Build scan history system
+  - [x] 7.1 Create React history page and filtering
+
+
     - Implement HistoryPage component with React Router integration
     - Create ScanHistoryList component with pagination and infinite scroll
     - Build HistoryFilters component for date range, tool type, and target filtering
