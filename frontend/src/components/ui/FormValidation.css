@@ -1,0 +1,348 @@
+.form-validation {
+  position: relative;
+  width: 100%;
+  
+  /* Define CSS variables for colors */
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  --color-success: #10b981;
+}
+
+.validation-messages {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  will-change: opacity, height, transform;
+}
+
+.validation-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  border-left: 3px solid;
+  transition: background-color 0.2s ease, border-left-width 0.2s ease;
+  will-change: opacity, transform;
+}
+
+.validation-message--error {
+  background: rgba(239, 68, 68, 0.1);
+  border-left-color: var(--color-error);
+  color: var(--text-primary);
+}
+
+.validation-message--warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-left-color: var(--color-warning);
+  color: var(--text-primary);
+}
+
+.validation-message--info {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: var(--color-info);
+  color: var(--text-primary);
+}
+
+.validation-success {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-left: 3px solid var(--color-success);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, border-left-width 0.2s ease;
+  will-change: opacity, transform;
+}
+
+.validation-icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.validation-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.validation-message--error .validation-icon {
+  color: var(--color-error);
+}
+
+.validation-message--warning .validation-icon {
+  color: var(--color-warning);
+}
+
+.validation-message--info .validation-icon {
+  color: var(--color-info);
+}
+
+.validation-success .validation-icon {
+  color: var(--color-success);
+}
+
+.validation-text {
+  flex: 1;
+  word-wrap: break-word;
+}
+
+/* Strength meter */
+.validation-strength {
+  margin-top: 0.5rem;
+}
+
+.validation-strength__meter {
+  height: 4px;
+  background-color: rgba(128, 128, 128, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.validation-strength__bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease, background-color 0.5s ease;
+}
+
+.validation-strength__label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+/* Dark theme enhancements */
+[data-theme="dark"] .validation-message--error {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+[data-theme="dark"] .validation-message--warning {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+[data-theme="dark"] .validation-message--info {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+[data-theme="dark"] .validation-success {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .validation-strength__meter {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .validation-message--error {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="light"] .validation-message--warning {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+[data-theme="light"] .validation-message--info {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="light"] .validation-success {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+[data-theme="light"] .validation-strength__meter {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced input states with real-time feedback */
+.form-validation input:not(:focus):invalid,
+.form-validation textarea:not(:focus):invalid {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-validation input:focus:invalid,
+.form-validation textarea:focus:invalid {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.form-validation input:valid:not(:placeholder-shown),
+.form-validation textarea:valid:not(:placeholder-shown) {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-validation input:focus:valid:not(:placeholder-shown),
+.form-validation textarea:focus:valid:not(:placeholder-shown) {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Animation enhancements */
+.validation-message {
+  transform-origin: left center;
+}
+
+.validation-success {
+  transform-origin: left center;
+}
+
+/* Interactive hover effects */
+.validation-message:hover {
+  border-left-width: 4px;
+  transform: translateX(2px);
+}
+
+.validation-message--error:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.validation-message--warning:hover {
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.validation-message--info:hover {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.validation-success:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-left-width: 4px;
+  transform: translateX(2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .validation-message,
+  .validation-success {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.8125rem;
+  }
+  
+  .validation-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .validation-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .validation-strength__meter {
+    height: 3px;
+  }
+  
+  .validation-strength__label {
+    font-size: 0.7rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .validation-messages,
+  .validation-success,
+  .validation-message,
+  .validation-strength__bar,
+  .form-validation input,
+  .form-validation textarea {
+    transition: none;
+  }
+  
+  .validation-message:hover,
+  .validation-success:hover {
+    transform: none;
+  }
+}
+
+/* Focus states */
+.form-validation:focus-within .validation-message--error {
+  background: rgba(239, 68, 68, 0.15);
+  border-left-width: 4px;
+}
+
+.form-validation:focus-within .validation-message--warning {
+  background: rgba(245, 158, 11, 0.15);
+  border-left-width: 4px;
+}
+
+.form-validation:focus-within .validation-message--info {
+  background: rgba(59, 130, 246, 0.15);
+  border-left-width: 4px;
+}
+
+.form-validation:focus-within .validation-success {
+  background: rgba(16, 185, 129, 0.15);
+  border-left-width: 4px;
+}
+
+/* Animation for validation messages */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+}
+
+.form-validation.shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Typing indicator */
+.validation-typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  opacity: 0.7;
+}
+
+.validation-typing-indicator__dot {
+  width: 4px;
+  height: 4px;
+  background-color: var(--text-secondary);
+  border-radius: 50%;
+}
+
+/* Pulse animation for typing indicator */
+@keyframes typingPulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.5); opacity: 1; }
+}
+
+.validation-typing-indicator__dot:nth-child(1) {
+  animation: typingPulse 1s infinite 0s;
+}
+
+.validation-typing-indicator__dot:nth-child(2) {
+  animation: typingPulse 1s infinite 0.2s;
+}
+
+.validation-typing-indicator__dot:nth-child(3) {
+  animation: typingPulse 1s infinite 0.4s;
+}

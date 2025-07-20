@@ -1,0 +1,111 @@
+.activity-log {
+  margin-top: 16px;
+}
+
+.activity-log h4 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.logs-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.log-item {
+  display: flex;
+  padding: 12px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.log-item:last-child {
+  border-bottom: none;
+}
+
+.log-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.log-icon {
+  font-size: 1.2rem;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.log-content {
+  flex: 1;
+}
+
+.log-description {
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.log-meta {
+  display: flex;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.log-date {
+  margin-right: 12px;
+}
+
+.log-ip {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+}
+
+.error-message {
+  color: #ff4d4f;
+  padding: 12px;
+  background-color: rgba(255, 77, 79, 0.1);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.no-logs {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: 4px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.pagination-btn {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}

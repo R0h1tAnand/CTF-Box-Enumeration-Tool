@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardBody, CardFooter, CardTitle, CardDescription, Button, Loading } from '../ui';
+import { FadeInUp, StaggeredList } from '../ui/FadeSlideAnimation';
 import { useRecentScans } from '../../hooks/useDashboard';
 import type { RecentScan } from '../../services/dashboardService';
 import './RecentScansWidget.css';
@@ -149,77 +150,79 @@ export const RecentScansWidget: React.FC = () => {
   }
 
   return (
-    <Card className="recent-scans-widget" variant="default" hoverable>
-      <CardHeader>
-        <CardTitle>Recent Scans</CardTitle>
-        <CardDescription>Your latest scanning activities</CardDescription>
-      </CardHeader>
-      <CardBody>
-        <div className="recent-scans-list">
-          {recentScans.map((scan) => (
-            <div
-              key={scan.id}
-              className={`scan-item ${getStatusColor(scan.status)}`}
-              onClick={() => handleScanClick(scan.id)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleScanClick(scan.id);
-                }
-              }}
-            >
-              <div className="scan-header">
-                <div className="scan-target">
-                  <span className="target-icon">🎯</span>
-                  <span className="target-ip">{scan.target_ip}</span>
-                </div>
-                <div className="scan-status">
-                  <span className="status-icon">{getStatusIcon(scan.status)}</span>
-                  <span className="status-text">{scan.status}</span>
-                </div>
-              </div>
-              
-              <div className="scan-details">
-                <div className="scan-tools">
-                  {scan.tools_used && scan.tools_used.length > 0 ? (
-                    scan.tools_used.map((tool, index) => (
-                      <span key={index} className="tool-badge">
-                        {tool}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="tool-badge">Unknown</span>
-                  )}
+    <FadeInUp delay={0.2}>
+      <Card className="recent-scans-widget" variant="default" hoverable>
+        <CardHeader>
+          <CardTitle>Recent Scans</CardTitle>
+          <CardDescription>Your latest scanning activities</CardDescription>
+        </CardHeader>
+        <CardBody>
+          <StaggeredList className="recent-scans-list" staggerDelay={0.1}>
+            {recentScans.map((scan) => (
+              <div
+                key={scan.id}
+                className={`scan-item ${getStatusColor(scan.status)}`}
+                onClick={() => handleScanClick(scan.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleScanClick(scan.id);
+                  }
+                }}
+              >
+                <div className="scan-header">
+                  <div className="scan-target">
+                    <span className="target-icon">🎯</span>
+                    <span className="target-ip">{scan.target_ip}</span>
+                  </div>
+                  <div className="scan-status">
+                    <span className="status-icon">{getStatusIcon(scan.status)}</span>
+                    <span className="status-text">{scan.status}</span>
+                  </div>
                 </div>
                 
-                <div className="scan-meta">
-                  <span className="scan-time">{formatDate(scan.started_at)}</span>
-                  {scan.status === 'completed' && (
-                    <span className="scan-duration">{formatDuration(scan.duration)}</span>
-                  )}
+                <div className="scan-details">
+                  <div className="scan-tools">
+                    {scan.tools_used && scan.tools_used.length > 0 ? (
+                      scan.tools_used.map((tool, index) => (
+                        <span key={index} className="tool-badge">
+                          {tool}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="tool-badge">Unknown</span>
+                    )}
+                  </div>
+                  
+                  <div className="scan-meta">
+                    <span className="scan-time">{formatDate(scan.started_at)}</span>
+                    {scan.status === 'completed' && (
+                      <span className="scan-duration">{formatDuration(scan.duration)}</span>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {scan.error_message && (
-                <div className="scan-error">
-                  <span className="error-text">{scan.error_message}</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </CardBody>
-      <CardFooter>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleViewAllClick}
-          fullWidth
-        >
-          View All Scans
-        </Button>
-      </CardFooter>
-    </Card>
+                {scan.error_message && (
+                  <div className="scan-error">
+                    <span className="error-text">{scan.error_message}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </StaggeredList>
+        </CardBody>
+        <CardFooter>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleViewAllClick}
+            fullWidth
+          >
+            View All Scans
+          </Button>
+        </CardFooter>
+      </Card>
+    </FadeInUp>
   );
 };

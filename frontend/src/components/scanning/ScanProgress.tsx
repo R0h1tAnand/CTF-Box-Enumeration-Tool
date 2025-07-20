@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardBody } from '../ui/Card';
 import { ProgressBar, CircularProgress } from '../ui/ProgressBar';
 import { Button } from '../ui/Button';
+import { LoadingAnimation } from '../ui/LoadingAnimation';
 import { useScanProgress } from '../../hooks/useScanProgress';
 import './ScanProgress.css';
 
@@ -116,13 +117,40 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({
         >
           <div className="scan-progress__overall-header">
             <h4>Overall Progress</h4>
-            <CircularProgress 
-              value={overallProgress} 
-              size={60} 
-              strokeWidth={6}
-              variant={overallProgress === 100 ? 'success' : 'default'}
-              animated
-            />
+            <AnimatePresence mode="wait">
+              {overallProgress === 0 ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <LoadingAnimation 
+                    type="cyber" 
+                    size="medium" 
+                    message="Initializing scan..."
+                    typingEffect={true}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="progress"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <CircularProgress 
+                    value={overallProgress} 
+                    size={60} 
+                    strokeWidth={6}
+                    variant={overallProgress === 100 ? 'success' : 'default'}
+                    animated
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <ProgressBar 
             value={overallProgress} 
@@ -177,6 +205,23 @@ export const ScanProgress: React.FC<ScanProgressProps> = ({
                   striped={data.status === 'running'}
                   animated={data.status === 'running'}
                 />
+                
+                {data.status === 'running' && (
+                  <motion.div 
+                    className="scan-progress__tool-animation"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <LoadingAnimation 
+                      type="terminal" 
+                      size="small" 
+                      message={`${tool} scan in progress`}
+                      showMessage={false}
+                    />
+                  </motion.div>
+                )}
                 
                 {data.output && (
                   <motion.div 

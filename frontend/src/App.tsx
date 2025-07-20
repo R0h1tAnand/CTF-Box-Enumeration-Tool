@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthPage, DashboardPage, ScanPage, HistoryPage, SettingsPage } from './pages';
 import { Layout, ProtectedRoute, SessionWarning } from './components';
+import { PageTransition, ToastProvider } from './components/ui';
 import { authService } from './services/authService';
 import { initializeSessionManager } from './utils/sessionManager';
 import './App.css';
@@ -26,13 +27,19 @@ const AppContent: React.FC = () => {
   return (
     <>
       <Routes>
-        <Route path="/login" element={<AuthPage />} />
+        <Route path="/login" element={
+          <PageTransition transitionType="fade" duration={0.4}>
+            <AuthPage />
+          </PageTransition>
+        } />
         <Route 
           path="/dashboard" 
           element={
             <ProtectedRoute>
               <Layout>
-                <DashboardPage />
+                <PageTransition transitionType="slide">
+                  <DashboardPage />
+                </PageTransition>
               </Layout>
             </ProtectedRoute>
           } 
@@ -42,7 +49,9 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute>
               <Layout>
-                <ScanPage />
+                <PageTransition transitionType="zoom" duration={0.4}>
+                  <ScanPage />
+                </PageTransition>
               </Layout>
             </ProtectedRoute>
           } 
@@ -52,17 +61,21 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute>
               <Layout>
-                <HistoryPage />
+                <PageTransition transitionType="slide">
+                  <HistoryPage />
+                </PageTransition>
               </Layout>
             </ProtectedRoute>
           } 
         />
         <Route 
-          path="/settings" 
+          path="/settings/*" 
           element={
             <ProtectedRoute>
               <Layout>
-                <SettingsPage />
+                <PageTransition transitionType="fade" duration={0.3}>
+                  <SettingsPage />
+                </PageTransition>
               </Layout>
             </ProtectedRoute>
           } 
@@ -95,11 +108,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <ThemeProvider>
-          <AuthProvider>
-            <div className="app">
-              <AppContent />
-            </div>
-          </AuthProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <div className="app">
+                <AppContent />
+              </div>
+            </AuthProvider>
+          </ToastProvider>
         </ThemeProvider>
       </Router>
     </QueryClientProvider>

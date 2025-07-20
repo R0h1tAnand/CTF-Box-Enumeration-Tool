@@ -1,0 +1,56 @@
+.fade-slide-animation {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.fade-slide-animation__item {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Staggered list styling */
+.staggered-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.staggered-list__item {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Reveal text animation */
+.reveal-text {
+  overflow: hidden;
+}
+
+.reveal-text__word {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  white-space: nowrap;
+}
+
+/* Add perspective for 3D animations */
+[data-animation-type="flip"],
+[data-animation-type="zoom"] {
+  perspective: 1200px;
+}
+
+/* Dark theme enhancements */
+[data-theme="dark"] .fade-slide-animation {
+  --animation-shadow-color: rgba(0, 255, 136, 0.2);
+}
+
+[data-theme="light"] .fade-slide-animation {
+  --animation-shadow-color: rgba(0, 122, 204, 0.1);
+}
+
+/* Optional shadow effect during animations */
+.fade-slide-animation--with-shadow {
+  box-shadow: 0 0 20px var(--animation-shadow-color, transparent);
+}

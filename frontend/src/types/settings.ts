@@ -15,3 +15,13 @@ export interface ThemeContextType {
   toggleTheme: () => void;
   setTheme: (theme: ThemeType) => void;
 }
+
+export interface ActivityLog {
+  id: number;
+  user_id: number;
+  activity_type: string;
+  description: string;
+  ip_address: string;
+  user_agent: string;
+  created_at: string;
+}

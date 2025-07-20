@@ -11,12 +11,16 @@ import {
   CardFooter, 
   CardTitle, 
   CardDescription,
-  Button
+  Button,
+  ResponsiveGrid,
+  ResponsiveText,
+  useResponsive
 } from '../components/ui';
 import './DashboardPage.css';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const { isMobile, isTablet } = useResponsive();
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -36,67 +40,98 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-page">
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">Dashboard</h1>
-        <p className="dashboard-subtitle">Monitor your cybersecurity toolkit activities</p>
+      <div className="dashboard-header space-y-2">
+        <ResponsiveText 
+          as="h1" 
+          size={{ 
+            mobile: 'xl', 
+            tablet: '2xl', 
+            desktop: '3xl' 
+          }}
+          weight="bold"
+          className="dashboard-title"
+        >
+          Dashboard
+        </ResponsiveText>
+        <ResponsiveText 
+          size={{ 
+            mobile: 'sm', 
+            tablet: 'base', 
+            desktop: 'lg' 
+          }}
+          className="dashboard-subtitle"
+        >
+          Monitor your cybersecurity toolkit activities
+        </ResponsiveText>
       </div>
       
-      <div className="dashboard-grid">
+      <div className="dashboard-content space-y-6">
         {/* Welcome Section - Full width on top */}
-        <div className="dashboard-welcome">
-          <WelcomeSection />
-        </div>
+        <WelcomeSection />
 
-        {/* Quick Actions Card */}
-        <Card className="dashboard-card quick-actions-card" variant="elevated" hoverable>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Start a new scan or access your tools</CardDescription>
-          </CardHeader>
-          <CardBody>
-            <div className="quick-actions">
-              <Button 
-                variant="primary" 
-                fullWidth 
-                onClick={() => handleQuickAction('scan')}
-                className="action-button"
-              >
-                🔍 Start New Scan
-              </Button>
-              <Button 
-                variant="secondary" 
-                fullWidth
-                onClick={() => handleQuickAction('history')}
-                className="action-button"
-              >
-                📊 View History
-              </Button>
-              <Button 
-                variant="outline" 
-                fullWidth
-                onClick={() => handleQuickAction('settings')}
-                className="action-button"
-              >
-                ⚙️ Settings
-              </Button>
-            </div>
-          </CardBody>
-        </Card>
+        <ResponsiveGrid 
+          columns={{ 
+            mobile: 1, 
+            tablet: 2, 
+            desktop: 3 
+          }}
+          gap={isMobile ? 'md' : 'lg'}
+          className="dashboard-grid"
+        >
+          {/* Quick Actions Card */}
+          <Card className="dashboard-card quick-actions-card" variant="elevated" hoverable>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Start a new scan or access your tools</CardDescription>
+            </CardHeader>
+            <CardBody>
+              <div className="quick-actions space-y-3">
+                <Button 
+                  variant="primary" 
+                  fullWidth 
+                  size={isMobile ? 'lg' : 'md'}
+                  onClick={() => handleQuickAction('scan')}
+                  className="action-button"
+                >
+                  🔍 Start New Scan
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  fullWidth
+                  size={isMobile ? 'lg' : 'md'}
+                  onClick={() => handleQuickAction('history')}
+                  className="action-button"
+                >
+                  📊 View History
+                </Button>
+                <Button 
+                  variant="outline" 
+                  fullWidth
+                  size={isMobile ? 'lg' : 'md'}
+                  onClick={() => handleQuickAction('settings')}
+                  className="action-button"
+                >
+                  ⚙️ Settings
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
 
-        {/* User Statistics */}
-        <div className="dashboard-card stats-card">
-          <UserStats />
-        </div>
+          {/* User Statistics */}
+          <div className="dashboard-card stats-card">
+            <UserStats />
+          </div>
 
-        {/* Recent Scans Widget */}
-        <div className="dashboard-card recent-scans-card">
-          <RecentScansWidget />
-        </div>
+          {/* Recent Scans Widget */}
+          <div className={`dashboard-card recent-scans-card ${isMobile ? 'col-span-full' : ''}`}>
+            <RecentScansWidget />
+          </div>
 
-        {/* System Status Widget */}
-        <div className="dashboard-card system-status-card">
-          <SystemStatus />
-        </div>
+          {/* System Status Widget */}
+          <div className="dashboard-card system-status-card">
+            <SystemStatus />
+          </div>
+        </ResponsiveGrid>
       </div>
     </div>
   );

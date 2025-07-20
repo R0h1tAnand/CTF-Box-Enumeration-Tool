@@ -1,0 +1,449 @@
+.swipe-gesture {
+  position: relative;
+  touch-action: pan-y; /* Allow vertical scrolling but handle horizontal swipes */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  will-change: transform;
+  overflow: hidden;
+  
+  /* Define CSS variables for swipe colors */
+  --swipe-accent-color: var(--accent-color, #00ff88);
+  --swipe-indicator-bg: rgba(0, 255, 136, 0.2);
+  --swipe-indicator-border: var(--accent-color, #00ff88);
+  --swipe-hint-opacity: 0.1;
+}
+
+/* Active state */
+.swipe-gesture:active {
+  cursor: grabbing;
+}
+
+.swipe-gesture.is-dragging {
+  z-index: 1;
+}
+
+/* Swipe direction styling */
+.swipe-gesture.swipe-direction-left {
+  --swipe-direction-color: rgba(239, 68, 68, 0.2);
+}
+
+.swipe-gesture.swipe-direction-right {
+  --swipe-direction-color: rgba(16, 185, 129, 0.2);
+}
+
+.swipe-gesture.swipe-direction-up {
+  --swipe-direction-color: rgba(59, 130, 246, 0.2);
+}
+
+.swipe-gesture.swipe-direction-down {
+  --swipe-direction-color: rgba(245, 158, 11, 0.2);
+}
+
+/* Swipe indicator styles */
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swipe-indicator--arrow {
+  background: var(--swipe-indicator-bg);
+  border: 2px solid var(--swipe-indicator-border);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 1.5rem;
+  color: var(--swipe-indicator-border);
+  animation: pulse 1s infinite;
+}
+
+.swipe-indicator--dot {
+  width: 20px;
+  height: 20px;
+  background: var(--swipe-indicator-border);
+  border-radius: 50%;
+  opacity: 0.8;
+  box-shadow: 0 0 20px var(--swipe-indicator-border);
+  animation: pulse 1s infinite;
+}
+
+.swipe-indicator--pill {
+  width: 80px;
+  height: 40px;
+  background: var(--swipe-indicator-bg);
+  border: 2px solid var(--swipe-indicator-border);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swipe-indicator--pill-inner {
+  width: 30px;
+  height: 8px;
+  background: var(--swipe-indicator-border);
+  border-radius: 4px;
+  animation: pulse-width 1s infinite;
+}
+
+.swipe-indicator__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 1.5rem;
+}
+
+/* Swipe hint indicators */
+.swipe-hint {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.swipe-hint--left {
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 100%;
+  background: linear-gradient(to right, var(--swipe-accent-color) 0%, transparent 100%);
+}
+
+.swipe-hint--right {
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 100%;
+  background: linear-gradient(to left, var(--swipe-accent-color) 0%, transparent 100%);
+}
+
+.swipe-hint--up {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: linear-gradient(to bottom, var(--swipe-accent-color) 0%, transparent 100%);
+}
+
+.swipe-hint--down {
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: linear-gradient(to top, var(--swipe-accent-color) 0%, transparent 100%);
+}
+
+/* Show hints on hover/touch */
+.swipe-gesture:hover .swipe-hint {
+  opacity: var(--swipe-hint-opacity);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes pulse-width {
+  0%, 100% {
+    width: 30px;
+  }
+  50% {
+    width: 50px;
+  }
+}
+
+/* Touch-specific enhancements */
+@media (hover: none) and (pointer: coarse) {
+  .swipe-gesture {
+    touch-action: none; /* Take full control of touch events */
+  }
+  
+  /* Make touch targets larger */
+  .swipe-indicator--arrow {
+    width: 70px;
+    height: 70px;
+    font-size: 1.75rem;
+  }
+  
+  .swipe-indicator--dot {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .swipe-indicator--pill {
+    width: 100px;
+    height: 50px;
+  }
+}
+
+/* Desktop - disable swipe gestures by default */
+@media (min-width: 1024px) {
+  .swipe-gesture[data-swipe-enabled="false"] {
+    cursor: default;
+    pointer-events: auto;
+  }
+  
+  .swipe-gesture[data-swipe-enabled="false"] .swipe-hint {
+    display: none;
+  }
+}
+
+/* Dark theme enhancements */
+[data-theme="dark"] .swipe-gesture {
+  --swipe-indicator-bg: rgba(0, 255, 136, 0.15);
+  --swipe-hint-opacity: 0.15;
+}
+
+[data-theme="dark"] .swipe-indicator--arrow,
+[data-theme="dark"] .swipe-indicator--pill {
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .swipe-gesture {
+  --swipe-indicator-bg: rgba(0, 122, 204, 0.1);
+  --swipe-indicator-border: var(--accent-color, #007acc);
+  --swipe-hint-opacity: 0.08;
+}
+
+[data-theme="light"] .swipe-indicator--arrow,
+[data-theme="light"] .swipe-indicator--pill {
+  box-shadow: 0 0 20px rgba(0, 122, 204, 0.2);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .swipe-indicator {
+    animation: none;
+  }
+  
+  .swipe-indicator--pill-inner {
+    animation: none;
+  }
+  
+  .swipe-gesture {
+    transition: none;
+  }
+}
+
+/* Swipeable Tabs */
+.swipeable-tabs {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.swipeable-tabs__header {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--secondary-bg);
+  border-radius: 8px 8px 0 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.swipeable-tabs__header::-webkit-scrollbar {
+  display: none;
+}
+
+.swipeable-tabs__tab {
+  flex: 1;
+  min-width: max-content;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  white-space: nowrap;
+}
+
+.swipeable-tabs__tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.swipeable-tabs__tab.active {
+  color: var(--accent-color);
+  background: rgba(0, 255, 136, 0.1);
+}
+
+.swipeable-tabs__tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-color);
+}
+
+.swipeable-tabs__content {
+  flex: 1;
+  padding: 1rem;
+  background: var(--primary-bg);
+  border-radius: 0 0 8px 8px;
+  min-height: 200px;
+  overflow: hidden;
+}
+
+.swipeable-tabs__indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--secondary-bg);
+}
+
+.swipeable-tabs__indicators .indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.swipeable-tabs__indicators .indicator.active {
+  background: var(--accent-color);
+  transform: scale(1.2);
+}
+
+/* Mobile-specific enhancements */
+@media (max-width: 767px) {
+  .swipe-gesture {
+    touch-action: pan-y;
+  }
+  
+  .swipeable-tabs__header {
+    padding: 0;
+  }
+  
+  .swipeable-tabs__tab {
+    padding: 1rem 0.75rem;
+    font-size: 0.8125rem;
+    min-width: 80px;
+  }
+  
+  .swipeable-tabs__content {
+    padding: 0.75rem;
+    min-height: 150px;
+  }
+  
+  .swipeable-tabs__indicators {
+    padding: 0.5rem;
+  }
+  
+  .swipeable-tabs__indicators .indicator {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .swipeable-tabs__tab {
+    padding: 0.875rem 1.25rem;
+  }
+  
+  .swipeable-tabs__content {
+    padding: 1.25rem;
+  }
+}
+
+/* Desktop - disable swipe gestures */
+@media (min-width: 1024px) {
+  .swipe-gesture {
+    cursor: default;
+  }
+  
+  .swipeable-tabs__indicators {
+    display: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .swipeable-tabs__tab {
+    border: 1px solid transparent;
+  }
+  
+  .swipeable-tabs__tab.active {
+    border-color: var(--accent-color);
+  }
+  
+  .swipeable-tabs__indicators .indicator {
+    border: 1px solid var(--text-secondary);
+  }
+  
+  .swipeable-tabs__indicators .indicator.active {
+    border-color: var(--accent-color);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .swipe-gesture {
+    transition: none;
+  }
+  
+  .swipeable-tabs__tab {
+    transition: none;
+  }
+  
+  .swipeable-tabs__indicators .indicator {
+    transition: none;
+  }
+  
+  .swipe-indicator {
+    animation: none;
+  }
+}
+
+/* Dark theme enhancements */
+[data-theme="dark"] .swipeable-tabs__header {
+  background: rgba(26, 26, 26, 0.8);
+  border-color: rgba(51, 51, 51, 0.8);
+}
+
+[data-theme="dark"] .swipeable-tabs__tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .swipeable-tabs__tab.active {
+  background: rgba(0, 255, 136, 0.15);
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .swipeable-tabs__header {
+  background: rgba(248, 249, 250, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .swipeable-tabs__tab:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .swipeable-tabs__tab.active {
+  background: rgba(0, 122, 204, 0.1);
+}
