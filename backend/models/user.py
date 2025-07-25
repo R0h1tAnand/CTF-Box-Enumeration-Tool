@@ -14,6 +14,7 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
+    is_admin = db.Column(db.Boolean, default=False)
     
     # Relationships
     scans = db.relationship('ScanHistory', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -40,7 +41,8 @@ class User(db.Model):
             'email': self.email,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_login': self.last_login.isoformat() if self.last_login else None,
-            'is_active': self.is_active
+            'is_active': self.is_active,
+            'is_admin': self.is_admin
         }
     
     def __repr__(self):

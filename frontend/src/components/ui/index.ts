@@ -71,6 +71,13 @@ export {
 } from './Toast';
 export type { Toast as ToastType } from './Toast';
 
+// Data visualization components
+export { LineChart, BarChart } from './Charts';
+export { Table } from './Table';
+
+// Tab components
+export { Tabs, TabList, Tab, TabPanel } from './Tabs';
+
 export { 
   FormValidation, 
   ValidationRules, 

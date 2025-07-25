@@ -1,0 +1,2 @@
+[2025-07-26 00:05:56,980] [ERROR] [127.0.0.1] [None] [http://localhost/api/scans/start] [POST] [routes.scans:270] Error starting scan: 'NoneType' object has no attribute 'start_scan'
+[2025-07-26 00:09:11,853] [ERROR] [127.0.0.1] [None] [http://localhost/api/scans/1/export?format=json] [GET] [routes.scans:1175] Error exporting scan results: cannot access local variable 'os' where it is not associated with a value

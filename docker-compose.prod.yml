@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: cybersecurity_toolkit
+      POSTGRES_USER: ${DB_USER:-toolkit_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-toolkit_user}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
+
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-defaultpassword}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-defaultpassword}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
+
+  # Main application
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=postgresql://${DB_USER:-toolkit_user}:${DB_PASSWORD}@db:5432/cybersecurity_toolkit
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-defaultpassword}@redis:6379/0
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - SSL_CERT_PATH=/app/ssl/cert.pem
+      - SSL_KEY_PATH=/app/ssl/key.pem
+      - BACKUP_ENABLED=true
+      - BACKUP_LOCATION=/app/backups
+      - LOG_FILE=/app/logs/app.log
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://yourdomain.com}
+      - RATE_LIMIT_STORAGE_URL=redis://:${REDIS_PASSWORD:-defaultpassword}@redis:6379/1
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/scan_results:/app/scan_results
+      - ./backups:/app/backups
+      - ./logs:/app/logs
+      - ./ssl:/app/ssl
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/auth/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Optional: Database backup service
+  db-backup:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: cybersecurity_toolkit
+      POSTGRES_USER: ${DB_USER:-toolkit_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./backups:/backups
+      - ./scripts:/scripts
+    command: >
+      sh -c "
+        while true; do
+          sleep 21600;  # 6 hours
+          pg_dump -h db -U ${DB_USER:-toolkit_user} cybersecurity_toolkit | gzip > /backups/db_backup_$$(date +%Y%m%d_%H%M%S).sql.gz;
+          find /backups -name 'db_backup_*.sql.gz' -mtime +7 -delete;
+        done
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

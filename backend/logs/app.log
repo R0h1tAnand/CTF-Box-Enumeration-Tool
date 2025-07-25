@@ -1,0 +1,33 @@
+[2025-07-26 00:01:16,283] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:01:16.283333
+[2025-07-26 00:01:16,311] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 00:01:16,314] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: OPXjEbhM7n46C9_oAAAA
+[2025-07-26 00:02:24,148] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:02:24.148141
+[2025-07-26 00:02:24,173] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 00:02:24,176] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: Fh_6oS55P9ab9OXrAAAA
+[2025-07-26 00:02:55,568] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:02:55.568068
+[2025-07-26 00:02:55,590] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 00:02:55,594] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: 25jQ0BAD5wt0O86AAAAA
+[2025-07-26 00:05:56,710] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:05:56.710663
+[2025-07-26 00:05:56,729] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 00:05:56,733] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: ZCiiipSZ5Nfv0H3eAAAA
+[2025-07-26 00:05:56,980] [ERROR] [127.0.0.1] [None] [http://localhost/api/scans/start] [POST] [routes.scans:270] Error starting scan: 'NoneType' object has no attribute 'start_scan'
+[2025-07-26 00:07:05,864] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:07:05.864191
+[2025-07-26 00:07:05,900] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 00:07:05,903] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: WsPYD3i05lVtbVUKAAAA
+[2025-07-26 00:07:06,162] [INFO] [127.0.0.1] [None] [http://localhost/api/scans/start] [POST] [routes.scans:255] User 1 started scan 1 on target 8.8.8.8
+[2025-07-26 00:08:27,579] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:08:27.579504
+[2025-07-26 00:08:27,598] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 00:08:27,601] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: JgxfrjSZ1cOxoHPsAAAA
+[2025-07-26 00:08:27,858] [INFO] [127.0.0.1] [None] [http://localhost/api/scans/start] [POST] [routes.scans:255] User 1 started scan 1 on target 8.8.8.8
+[2025-07-26 00:09:11,565] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:09:11.565790
+[2025-07-26 00:09:11,584] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 00:09:11,587] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: imGuSS6WW2nd9AFuAAAA
+[2025-07-26 00:09:11,847] [INFO] [127.0.0.1] [None] [http://localhost/api/scans/start] [POST] [routes.scans:255] User 1 started scan 1 on target 8.8.8.8
+[2025-07-26 00:09:11,853] [ERROR] [127.0.0.1] [None] [http://localhost/api/scans/1/export?format=json] [GET] [routes.scans:1175] Error exporting scan results: cannot access local variable 'os' where it is not associated with a value
+[2025-07-26 00:10:13,591] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:10:13.591454
+[2025-07-26 00:10:13,610] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 00:10:13,613] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: XnxUetPqC5mNvkGeAAAA
+[2025-07-26 00:10:13,878] [INFO] [127.0.0.1] [None] [http://localhost/api/scans/start] [POST] [routes.scans:255] User 1 started scan 1 on target 8.8.8.8
+[2025-07-26 00:10:30,340] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:10:30.340720
+[2025-07-26 00:10:30,361] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 00:10:30,364] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: hXSW--sxc_79DDg5AAAA

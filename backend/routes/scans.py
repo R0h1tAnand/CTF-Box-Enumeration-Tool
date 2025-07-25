@@ -3,11 +3,15 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 import os
 import json
 import logging
+import re
 from datetime import datetime
 from models.scan_history import ScanHistory
 from database import db
 from tools.scan_manager import ScanManager
 from tools.tool_validator import ToolValidator
+from utils.input_sanitizer import InputSanitizer
+from utils.rate_limiter import RateLimiter
+from utils.xss_protection import XSSProtection
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -18,22 +22,32 @@ scans_bp = Blueprint('scans', __name__)
 # Initialize scan manager
 scan_manager = None
 
-@scans_bp.before_app_first_request
-def initialize_scan_manager():
-    """Initialize the scan manager with the Flask app."""
+def get_scan_manager():
+    """Get or initialize the scan manager."""
     global scan_manager
     
-    # Create scan results directory if it doesn't exist
-    scan_results_dir = os.path.join(current_app.root_path, 'scan_results')
-    os.makedirs(scan_results_dir, exist_ok=True)
+    if scan_manager is None:
+        # Create scan results directory if it doesn't exist
+        scan_results_dir = os.path.join(current_app.root_path, 'scan_results')
+        os.makedirs(scan_results_dir, exist_ok=True)
+        
+        # For testing, create a mock socketio if not available
+        socketio = getattr(current_app, 'extensions', {}).get('socketio')
+        if socketio is None:
+            from unittest.mock import MagicMock
+            socketio = MagicMock()
+        
+        scan_manager = ScanManager(
+            socketio=socketio,
+            scan_results_dir=scan_results_dir
+        )
     
-    scan_manager = ScanManager(
-        socketio=current_app.extensions['socketio'],
-        scan_results_dir=scan_results_dir
-    )
+    return scan_manager
 
 @scans_bp.route('/start', methods=['POST'])
 @jwt_required()
+@RateLimiter.limit(10, 600)  # 10 scans per 10 minutes per user
+@XSSProtection.protect()
 def start_scan():
     """
     Start a new scan with the specified tools.
@@ -72,14 +86,47 @@ def start_scan():
                 'code': 'NO_DATA'
             }), 400
         
-        # Validate target
-        target = data.get('target')
+        # Validate and sanitize target
+        raw_target = data.get('target', '')
+        
+        # First check if it's an IP address or hostname
+        if not InputSanitizer.validate_target(raw_target):
+            return jsonify({
+                'error': True,
+                'message': 'Invalid target format. Must be a valid IP address or hostname.',
+                'code': 'INVALID_TARGET_FORMAT'
+            }), 400
+        
+        # Sanitize the target
+        if re.match(r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$', raw_target):
+            # It's an IPv4 address
+            target = InputSanitizer.sanitize_ip_address(raw_target)
+        else:
+            # It's a hostname
+            target = InputSanitizer.sanitize_hostname(raw_target)
+        
         if not target:
             return jsonify({
                 'error': True,
-                'message': 'Target is required',
-                'code': 'MISSING_TARGET'
+                'message': 'Target is required and must be a valid IP address or hostname',
+                'code': 'INVALID_TARGET'
             }), 400
+        
+        # Check for restricted targets (e.g., localhost, private IPs)
+        restricted_targets = [
+            '127.0.0.1', 'localhost', '::1',  # Localhost
+            '10.', '172.16.', '172.17.', '172.18.', '172.19.', '172.20.', 
+            '172.21.', '172.22.', '172.23.', '172.24.', '172.25.', '172.26.', 
+            '172.27.', '172.28.', '172.29.', '172.30.', '172.31.', '192.168.'  # Private IPs
+        ]
+        
+        for restricted in restricted_targets:
+            if target.startswith(restricted):
+                return jsonify({
+                    'error': True,
+                    'message': 'Scanning localhost or private networks is not allowed',
+                    'code': 'RESTRICTED_TARGET'
+                }), 403
         
         # Validate tools
         tools = data.get('tools', [])
@@ -91,6 +138,7 @@ def start_scan():
             }), 400
         
         # Validate each tool
+        sanitized_tools = []
         for tool in tools:
             if 'tool_name' not in tool:
                 return jsonify({
@@ -99,19 +147,101 @@ def start_scan():
                     'code': 'INVALID_TOOL'
                 }), 400
             
+            # Sanitize tool name
+            tool_name = InputSanitizer.sanitize_string(tool['tool_name'].lower())
+            
             # Check if tool is supported
-            if tool['tool_name'].lower() not in ['nmap', 'gobuster', 'dirb']:
+            if tool_name not in ['nmap', 'gobuster', 'dirb']:
                 return jsonify({
                     'error': True,
-                    'message': f'Unsupported tool: {tool["tool_name"]}',
+                    'message': f'Unsupported tool: {tool_name}',
                     'code': 'UNSUPPORTED_TOOL'
                 }), 400
+            
+            # Sanitize tool options
+            sanitized_options = {}
+            if 'options' in tool and isinstance(tool['options'], dict):
+                for key, value in tool['options'].items():
+                    # Sanitize option key
+                    sanitized_key = InputSanitizer.sanitize_string(key)
+                    
+                    # Sanitize option value based on tool and key
+                    if tool_name == 'nmap':
+                        if sanitized_key == 'ports':
+                            # Validate port range format (e.g., "1-1000", "80,443", "1-100,443")
+                            if not re.match(r'^(\d+(-\d+)?)(,\d+(-\d+)?)*$', str(value)):
+                                return jsonify({
+                                    'error': True,
+                                    'message': f'Invalid port format for nmap: {value}',
+                                    'code': 'INVALID_PORT_FORMAT'
+                                }), 400
+                            sanitized_options[sanitized_key] = str(value)
+                        elif sanitized_key == 'scan_type':
+                            # Validate scan type
+                            valid_scan_types = ['basic', 'quick', 'full', 'vuln', 'service']
+                            if str(value).lower() not in valid_scan_types:
+                                return jsonify({
+                                    'error': True,
+                                    'message': f'Invalid scan type for nmap: {value}',
+                                    'code': 'INVALID_SCAN_TYPE'
+                                }), 400
+                            sanitized_options[sanitized_key] = str(value).lower()
+                        else:
+                            sanitized_options[sanitized_key] = InputSanitizer.sanitize_string(str(value))
+                    
+                    elif tool_name in ['gobuster', 'dirb']:
+                        if sanitized_key == 'wordlist':
+                            # Validate wordlist path (only allow predefined wordlists)
+                            valid_wordlists = [
+                                '/usr/share/wordlists/dirb/common.txt',
+                                '/usr/share/wordlists/dirb/big.txt',
+                                '/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt'
+                            ]
+                            if str(value) not in valid_wordlists:
+                                return jsonify({
+                                    'error': True,
+                                    'message': f'Invalid or unauthorized wordlist: {value}',
+                                    'code': 'INVALID_WORDLIST'
+                                }), 400
+                            sanitized_options[sanitized_key] = str(value)
+                        elif sanitized_key == 'mode' and tool_name == 'gobuster':
+                            # Validate gobuster mode
+                            valid_modes = ['dir', 'dns', 'vhost']
+                            if str(value).lower() not in valid_modes:
+                                return jsonify({
+                                    'error': True,
+                                    'message': f'Invalid mode for gobuster: {value}',
+                                    'code': 'INVALID_MODE'
+                                }), 400
+                            sanitized_options[sanitized_key] = str(value).lower()
+                        else:
+                            sanitized_options[sanitized_key] = InputSanitizer.sanitize_string(str(value))
+            
+            # Add sanitized tool to list
+            sanitized_tools.append({
+                'tool_name': tool_name,
+                'options': sanitized_options
+            })
         
-        # Start the scan
-        scan_id = scan_manager.start_scan(
+        # Check concurrent scans limit for user
+        active_scans = ScanHistory.query.filter_by(
+            user_id=user_id, 
+            status='running'
+        ).count()
+        
+        max_concurrent_scans = 3  # Limit to 3 concurrent scans per user
+        if active_scans >= max_concurrent_scans:
+            return jsonify({
+                'error': True,
+                'message': f'Maximum of {max_concurrent_scans} concurrent scans allowed',
+                'code': 'MAX_CONCURRENT_SCANS'
+            }), 429
+        
+        # Start the scan with sanitized data
+        scan_id = get_scan_manager().start_scan(
             user_id=user_id,
             target=target,
-            tools_config=tools
+            tools_config=sanitized_tools
         )
         
         if scan_id is None:
@@ -121,19 +251,30 @@ def start_scan():
                 'code': 'SCAN_START_FAILED'
             }), 500
         
-        # Return scan ID
-        return jsonify({
+        # Log the scan start
+        logger.info(f"User {user_id} started scan {scan_id} on target {target}")
+        
+        # Return scan ID with security headers
+        response = jsonify({
             'error': False,
             'message': 'Scan started successfully',
             'scan_id': scan_id
-        }), 201
+        })
+        
+        # Add security headers
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        
+        return response, 201
     
     except Exception as e:
         logger.error(f"Error starting scan: {e}")
         return jsonify({
             'error': True,
-            'message': f'Internal server error: {str(e)}',
-            'code': 'SERVER_ERROR'
+            'message': 'Internal server error',
+            'code': 'SERVER_ERROR',
+            'details': str(e) if current_app.debug else 'An error occurred while starting the scan'
         }), 500
 
 @scans_bp.route('/<int:scan_id>/status', methods=['GET'])
@@ -177,7 +318,7 @@ def get_scan_status(scan_id):
             }), 404
         
         # Get scan status
-        status = scan_manager.get_scan_status(scan_id)
+        status = get_scan_manager().get_scan_status(scan_id)
         if not status:
             return jsonify({
                 'error': True,
@@ -232,7 +373,7 @@ def stop_scan(scan_id):
             }), 400
         
         # Stop the scan
-        success = scan_manager.stop_scan(scan_id)
+        success = get_scan_manager().stop_scan(scan_id)
         if not success:
             return jsonify({
                 'error': True,

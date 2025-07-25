@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthPage, DashboardPage, ScanPage, HistoryPage, SettingsPage } from './pages';
+import { AuthPage, DashboardPage, ScanPage, HistoryPage, SettingsPage, AdminDashboardPage } from './pages';
 import { Layout, ProtectedRoute, SessionWarning } from './components';
 import { PageTransition, ToastProvider } from './components/ui';
 import { authService } from './services/authService';
@@ -75,6 +75,18 @@ const AppContent: React.FC = () => {
               <Layout>
                 <PageTransition transitionType="fade" duration={0.3}>
                   <SettingsPage />
+                </PageTransition>
+              </Layout>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <PageTransition transitionType="slide">
+                  <AdminDashboardPage />
                 </PageTransition>
               </Layout>
             </ProtectedRoute>

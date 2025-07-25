@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../contexts/AuthContext';
-import { FormValidation, ValidationRules, Button, Input, useToastHelpers } from './ui';
+import { FormValidation, Button, Input, useToastHelpers } from './ui';
+import { ValidationRulesEnhanced, sanitizeString } from '../utils/inputValidation';
 import type { LoginCredentials } from '../types/auth';
 import './Auth.css';
 
@@ -26,14 +27,29 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegis
     setIsLoading(true);
 
     try {
-      await login(data);
+      // Sanitize inputs before sending to API
+      const sanitizedData = {
+        ...data,
+        username: sanitizeString(data.username)
+        // Don't sanitize password
+      };
+      
+      await login(sanitizedData);
       success('Welcome back!', 'You have successfully signed in.');
       onSuccess?.();
     } catch (err: any) {
-      showError(
-        'Login Failed', 
-        err.response?.data?.message || 'Please check your credentials and try again.'
-      );
+      // Handle rate limiting
+      if (err.response?.status === 429) {
+        showError(
+          'Too Many Attempts', 
+          'Please wait a moment before trying again.'
+        );
+      } else {
+        showError(
+          'Login Failed', 
+          err.response?.data?.message || 'Please check your credentials and try again.'
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -48,10 +64,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegis
           <label htmlFor="username">Username</label>
           <FormValidation
             value={formData.username}
-            rules={[
-              ValidationRules.required('Username is required'),
-              ValidationRules.minLength(3, 'Username must be at least 3 characters')
-            ]}
+            rules={ValidationRulesEnhanced.username}
             realTime={true}
           >
             <Input
@@ -73,11 +86,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onSwitchToRegis
           <label htmlFor="password">Password</label>
           <FormValidation
             value={formData.password}
-            rules={[
-              ValidationRules.required('Password is required'),
-              ValidationRules.minLength(6, 'Password must be at least 6 characters')
-            ]}
+            rules={ValidationRulesEnhanced.password}
             realTime={true}
+            showStrengthMeter={true}
           >
             <Input
               id="password"

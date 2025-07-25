@@ -1,169 +1,259 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
+import logging
+from utils.cache_manager import cached_view, CacheManager, invalidate_cache_pattern
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 history_bp = Blueprint('history', __name__)
 
 @history_bp.route('/scans', methods=['GET'])
 @jwt_required()
+@cached_view(ttl=30)  # Cache for 30 seconds
 def get_scan_history():
     """Get user's scan history with pagination and filtering."""
     from models import ScanHistory
     from datetime import datetime
-    from sqlalchemy import and_
+    from sqlalchemy import and_, func
     
-    # Get current user ID
-    user_id = get_jwt_identity()
+    try:
+        # Get current user ID
+        user_id = get_jwt_identity()
+        
+        # Get pagination parameters
+        page = int(request.args.get('page', 1))
+        limit = min(int(request.args.get('limit', 20)), 100)  # Cap at 100 items per page
+        
+        # Get filter parameters
+        start_date = request.args.get('startDate')
+        end_date = request.args.get('endDate')
+        target = request.args.get('target')
+        status = request.args.get('status')
+        tools = request.args.getlist('tools')
+        
+        # Build base query with eager loading of relationships
+        query = ScanHistory.query.filter(ScanHistory.user_id == user_id)
+        
+        # Apply filters if provided
+        if start_date:
+            try:
+                start_datetime = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+                query = query.filter(ScanHistory.started_at >= start_datetime)
+            except ValueError:
+                logger.warning(f"Invalid start date format: {start_date}")
+        
+        if end_date:
+            try:
+                end_datetime = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+                query = query.filter(ScanHistory.started_at <= end_datetime)
+            except ValueError:
+                logger.warning(f"Invalid end date format: {end_date}")
+        
+        if target:
+            query = query.filter(ScanHistory.target_ip.ilike(f'%{target}%'))
+        
+        if status:
+            query = query.filter(ScanHistory.status == status)
+        
+        if tools:
+            # Filter by tools used (JSON array contains)
+            for tool in tools:
+                query = query.filter(func.json_contains(
+                    func.json_extract(ScanHistory.tools_used, '$[*]'),
+                    f'"{tool}"'
+                ))
+        
+        # Use a subquery for counting to improve performance
+        count_subquery = query.with_entities(func.count().label('total')).scalar()
+        total = count_subquery
+        total_pages = (total + limit - 1) // limit if total > 0 else 0
+        
+        # Apply pagination and ordering with optimized query
+        results = query.order_by(ScanHistory.started_at.desc()) \
+                      .offset((page - 1) * limit) \
+                      .limit(limit) \
+                      .all()
+        
+        # Convert results to dictionaries
+        data = [scan.to_dict() for scan in results]
+        
+        return jsonify({
+            'data': data,
+            'total': total,
+            'page': page,
+            'limit': limit,
+            'totalPages': total_pages
+        })
     
-    # Get pagination parameters
-    page = int(request.args.get('page', 1))
-    limit = min(int(request.args.get('limit', 20)), 100)  # Cap at 100 items per page
-    
-    # Get filter parameters
-    start_date = request.args.get('startDate')
-    end_date = request.args.get('endDate')
-    target = request.args.get('target')
-    status = request.args.get('status')
-    tools = request.args.getlist('tools')
-    
-    # Build base query
-    query = ScanHistory.query.filter(ScanHistory.user_id == user_id)
-    
-    # Apply filters if provided
-    if start_date:
-        try:
-            start_datetime = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
-            query = query.filter(ScanHistory.started_at >= start_datetime)
-        except ValueError:
-            pass
-    
-    if end_date:
-        try:
-            end_datetime = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
-            query = query.filter(ScanHistory.started_at <= end_datetime)
-        except ValueError:
-            pass
-    
-    if target:
-        query = query.filter(ScanHistory.target_ip.ilike(f'%{target}%'))
-    
-    if status:
-        query = query.filter(ScanHistory.status == status)
-    
-    # Count total results before applying pagination
-    total = query.count()
-    total_pages = (total + limit - 1) // limit if total > 0 else 0
-    
-    # Apply pagination and ordering
-    results = query.order_by(ScanHistory.started_at.desc()) \
-                  .offset((page - 1) * limit) \
-                  .limit(limit) \
-                  .all()
-    
-    # Convert results to dictionaries
-    data = [scan.to_dict() for scan in results]
-    
-    return jsonify({
-        'data': data,
-        'total': total,
-        'page': page,
-        'limit': limit,
-        'totalPages': total_pages
-    })
+    except Exception as e:
+        logger.error(f"Error in get_scan_history: {str(e)}")
+        return jsonify({
+            'error': True,
+            'message': 'Failed to retrieve scan history',
+            'details': str(e) if current_app.debug else 'An error occurred'
+        }), 500
 
 @history_bp.route('/scans/<int:scan_id>', methods=['GET'])
 @jwt_required()
+@cached_view(ttl=60)  # Cache for 60 seconds
 def get_scan_details(scan_id):
     """Get detailed information about a specific scan."""
     from models import ScanHistory
     import os
     import json
     
-    # Get current user ID
-    user_id = get_jwt_identity()
+    try:
+        # Get current user ID
+        user_id = get_jwt_identity()
+        
+        # Find the scan in the database
+        scan = ScanHistory.query.filter_by(id=scan_id, user_id=user_id).first()
+        
+        if not scan:
+            return jsonify({
+                'error': True,
+                'message': 'Scan not found or access denied',
+                'code': 'SCAN_NOT_FOUND'
+            }), 404
+        
+        # Get the scan details
+        scan_data = scan.to_dict()
+        
+        # If there's a results path, try to load the results
+        if scan.results_path and os.path.exists(scan.results_path):
+            try:
+                # Use a cache key based on the file's modification time
+                cache_key = f"scan_results:{scan_id}:{os.path.getmtime(scan.results_path)}"
+                
+                # Try to get from cache
+                cached_results = CacheManager.get(cache_key)
+                if cached_results:
+                    scan_data['results'] = cached_results
+                else:
+                    # Read from file and cache
+                    with open(scan.results_path, 'r') as f:
+                        results = f.read()
+                        scan_data['results'] = results
+                        
+                        # Cache the results for 5 minutes
+                        CacheManager.set(cache_key, results, 300)
+            except Exception as e:
+                logger.error(f"Error loading scan results: {str(e)}")
+                scan_data['results'] = f"Error loading results: {str(e)}"
+        else:
+            scan_data['results'] = "No results available"
+        
+        return jsonify(scan_data)
     
-    # Find the scan in the database
-    scan = ScanHistory.query.filter_by(id=scan_id, user_id=user_id).first()
-    
-    if not scan:
-        return jsonify({'error': 'Scan not found or access denied'}), 404
-    
-    # Get the scan details
-    scan_data = scan.to_dict()
-    
-    # If there's a results path, try to load the results
-    if scan.results_path and os.path.exists(scan.results_path):
-        try:
-            with open(scan.results_path, 'r') as f:
-                results = f.read()
-                scan_data['results'] = results
-        except Exception as e:
-            scan_data['results'] = f"Error loading results: {str(e)}"
-    else:
-        scan_data['results'] = "No results available"
-    
-    return jsonify(scan_data)
+    except Exception as e:
+        logger.error(f"Error in get_scan_details: {str(e)}")
+        return jsonify({
+            'error': True,
+            'message': 'Failed to retrieve scan details',
+            'details': str(e) if current_app.debug else 'An error occurred'
+        }), 500
 
 @history_bp.route('/search', methods=['GET'])
 @jwt_required()
+@cached_view(ttl=30)  # Cache for 30 seconds
 def search_scans():
     """Search through scan history with full-text search."""
     from models import ScanHistory
     from database import db
-    from sqlalchemy import or_, func
+    from sqlalchemy import or_, func, case
     
-    # Get current user ID
-    user_id = get_jwt_identity()
-    
-    # Get search query and pagination parameters
-    query = request.args.get('q', '')
-    page = int(request.args.get('page', 1))
-    limit = min(int(request.args.get('limit', 20)), 100)  # Cap at 100 items per page
-    
-    if not query:
-        return jsonify({
-            'data': [],
-            'total': 0,
-            'page': page,
-            'limit': limit,
-            'totalPages': 0
-        })
-    
-    # Build search query with relevance scoring
-    search_query = ScanHistory.query.filter(
-        ScanHistory.user_id == user_id,
-        or_(
-            ScanHistory.target_ip.ilike(f'%{query}%'),
-            ScanHistory.status.ilike(f'%{query}%'),
-            # Search in JSON fields (tools_used array)
-            func.json_contains(
-                func.lower(func.json_extract(ScanHistory.tools_used, '$[*]')),
-                func.lower(f'"{query}"')
+    try:
+        # Get current user ID
+        user_id = get_jwt_identity()
+        
+        # Get search query and pagination parameters
+        query = request.args.get('q', '').strip()
+        page = int(request.args.get('page', 1))
+        limit = min(int(request.args.get('limit', 20)), 100)  # Cap at 100 items per page
+        
+        if not query:
+            return jsonify({
+                'data': [],
+                'total': 0,
+                'page': page,
+                'limit': limit,
+                'totalPages': 0
+            })
+        
+        # Build search query with relevance scoring
+        # Use a case statement to calculate relevance score
+        relevance_score = case(
+            [
+                # Exact matches get highest score
+                (ScanHistory.target_ip == query, 100),
+                # Target starts with query
+                (ScanHistory.target_ip.like(f'{query}%'), 80),
+                # Target contains query
+                (ScanHistory.target_ip.ilike(f'%{query}%'), 60),
+                # Status matches
+                (ScanHistory.status.ilike(f'%{query}%'), 40),
+                # Tool matches
+                (func.json_contains(
+                    func.lower(func.json_extract(ScanHistory.tools_used, '$[*]')),
+                    func.lower(f'"{query}"')
+                ), 20)
+            ],
+            else_=0
+        ).label('relevance')
+        
+        # Build the query with relevance scoring
+        search_query = ScanHistory.query.with_entities(
+            ScanHistory,
+            relevance_score
+        ).filter(
+            ScanHistory.user_id == user_id,
+            or_(
+                ScanHistory.target_ip.ilike(f'%{query}%'),
+                ScanHistory.status.ilike(f'%{query}%'),
+                # Search in JSON fields (tools_used array)
+                func.json_contains(
+                    func.lower(func.json_extract(ScanHistory.tools_used, '$[*]')),
+                    func.lower(f'"{query}"')
+                )
             )
         )
-    )
+        
+        # Use a subquery for counting to improve performance
+        count_subquery = search_query.with_entities(func.count().label('total')).scalar()
+        total = count_subquery
+        total_pages = (total + limit - 1) // limit if total > 0 else 0
+        
+        # Apply pagination and ordering by relevance score
+        results = search_query.order_by(relevance_score.desc(), ScanHistory.started_at.desc()) \
+                             .offset((page - 1) * limit) \
+                             .limit(limit) \
+                             .all()
+        
+        # Convert results to dictionaries
+        data = [scan[0].to_dict() for scan in results]
+        
+        # Add relevance score to each result
+        for i, scan_with_score in enumerate(results):
+            data[i]['relevance_score'] = scan_with_score[1]
+        
+        return jsonify({
+            'data': data,
+            'total': total,
+            'page': page,
+            'limit': limit,
+            'totalPages': total_pages
+        })
     
-    # Count total results
-    total = search_query.count()
-    total_pages = (total + limit - 1) // limit if total > 0 else 0
-    
-    # Apply pagination
-    results = search_query.order_by(ScanHistory.started_at.desc()) \
-                         .offset((page - 1) * limit) \
-                         .limit(limit) \
-                         .all()
-    
-    # Convert results to dictionaries
-    data = [scan.to_dict() for scan in results]
-    
-    return jsonify({
-        'data': data,
-        'total': total,
-        'page': page,
-        'limit': limit,
-        'totalPages': total_pages
-    })
-@history_b
-p.route('/scans/<int:scan_id>/rerun', methods=['POST'])
+    except Exception as e:
+        logger.error(f"Error in search_scans: {str(e)}")
+        return jsonify({
+            'error': True,
+            'message': 'Failed to search scan history',
+            'details': str(e) if current_app.debug else 'An error occurred'
+        }), 500
+
+@history_bp.route('/scans/<int:scan_id>/rerun', methods=['POST'])
 @jwt_required()
 def rerun_scan(scan_id):
     """Re-run a previous scan with the same configuration."""

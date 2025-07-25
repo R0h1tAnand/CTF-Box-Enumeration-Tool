@@ -10,8 +10,10 @@ import {
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Card, CardHeader, CardTitle, CardBody } from '../ui/Card';
+import { FormValidation } from '../ui/FormValidation';
 import { ToolSelector } from './ToolSelector';
 import { ScanConfig } from '../../types/scanning';
+import { ValidationRulesEnhanced, sanitizeString, validateScanTarget } from '../../utils/inputValidation';
 
 interface ScanFormProps {
   onSubmit: (scanConfig: ScanConfig) => void;
@@ -34,14 +36,35 @@ export const ScanForm: React.FC<ScanFormProps> = ({ onSubmit, isLoading = false 
       return;
     }
 
+    // Validate target format
+    if (!validateScanTarget(target)) {
+      setError('Please enter a valid IP address or hostname');
+      return;
+    }
+
+    // Check for restricted targets
+    const restrictedTargets = [
+      'localhost', '127.0.0.1', '::1',  // Localhost
+      '10.', '172.16.', '172.17.', '172.18.', '172.19.', '172.20.', 
+      '172.21.', '172.22.', '172.23.', '172.24.', '172.25.', '172.26.', 
+      '172.27.', '172.28.', '172.29.', '172.30.', '172.31.', '192.168.'  // Private IPs
+    ];
+    
+    for (const restricted of restrictedTargets) {
+      if (target.startsWith(restricted)) {
+        setError('Scanning localhost or private networks is not allowed');
+        return;
+      }
+    }
+
     if (selectedTools.length === 0) {
       setError('Please select at least one tool');
       return;
     }
 
-    // Create scan configuration
+    // Create scan configuration with sanitized input
     const scanConfig: ScanConfig = {
-      target_ip: target.trim(),
+      target_ip: sanitizeString(target.trim()),
       tools: selectedTools,
       options: options
     };
@@ -72,15 +95,21 @@ export const ScanForm: React.FC<ScanFormProps> = ({ onSubmit, isLoading = false 
           
           <FormSection title="Target Information">
             <FormGroup>
-              <Input
-                label="Target IP or Domain"
-                placeholder="e.g., 192.168.1.1 or example.com"
+              <FormValidation
                 value={target}
-                onChange={(e) => setTarget(e.target.value)}
-                required
-                fullWidth
-                helperText="Enter the IP address or domain name to scan"
-              />
+                rules={ValidationRulesEnhanced.scanTarget}
+                realTime={true}
+              >
+                <Input
+                  label="Target IP or Domain"
+                  placeholder="e.g., example.com"
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                  required
+                  fullWidth
+                  helperText="Enter the IP address or domain name to scan"
+                />
+              </FormValidation>
             </FormGroup>
           </FormSection>
           

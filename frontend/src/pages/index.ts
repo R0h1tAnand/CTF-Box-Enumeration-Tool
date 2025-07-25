@@ -4,3 +4,4 @@ export { DashboardPage } from './DashboardPage';
 export { ScanPage } from './ScanPage';
 export { HistoryPage } from './HistoryPage';
 export { SettingsPage } from './SettingsPage';
+export { AdminDashboardPage } from './AdminDashboardPage';
