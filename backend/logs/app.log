@@ -31,3 +31,84 @@
 [2025-07-26 00:10:30,340] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:10:30.340720
 [2025-07-26 00:10:30,361] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
 [2025-07-26 00:10:30,364] [INFO] [None] [None] [http://localhost/socket.io] [GET] [tools.websocket_handlers:31] Client connected: hXSW--sxc_79DDg5AAAA
+[2025-07-26 00:59:59,898] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T00:59:59.898092
+[2025-07-26 01:00:00,044] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:2698] BEGIN (implicit)
+[2025-07-26 01:00:00,045] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] PRAGMA main.table_info("users")
+[2025-07-26 01:00:00,046] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [raw sql] ()
+[2025-07-26 01:00:00,048] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] PRAGMA main.table_info("scan_history")
+[2025-07-26 01:00:00,049] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [raw sql] ()
+[2025-07-26 01:00:00,050] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] PRAGMA main.table_info("user_settings")
+[2025-07-26 01:00:00,051] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [raw sql] ()
+[2025-07-26 01:00:00,051] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] PRAGMA main.table_info("activity_logs")
+[2025-07-26 01:00:00,052] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [raw sql] ()
+[2025-07-26 01:00:00,052] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] PRAGMA temp.table_info("activity_logs")
+[2025-07-26 01:00:00,053] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [raw sql] ()
+[2025-07-26 01:00:00,054] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] 
+CREATE TABLE activity_logs (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	activity_type VARCHAR(50) NOT NULL, 
+	description VARCHAR(255) NOT NULL, 
+	ip_address VARCHAR(45), 
+	user_agent VARCHAR(255), 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)
+
+
+[2025-07-26 01:00:00,065] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [no key 0.01149s] ()
+[2025-07-26 01:00:00,299] [WARNING] [None] [None] [None] [None] [database:30] SLOW QUERY: 0.245s - 
+CREATE TABLE activity_logs (
+	id INTEGER NOT NULL, 
+	user_id INTEGER NOT NULL, 
+	activity_type VARCHAR(50) NOT NULL, 
+	description VARCHAR(255) NOT NULL, 
+	ip_address VARCHAR(45), 
+	user_agent VARCHAR(255), 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)
+
+
+[2025-07-26 01:00:00,300] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] CREATE INDEX ix_activity_logs_ip_address ON activity_logs (ip_address)
+[2025-07-26 01:00:00,301] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [no key 0.00121s] ()
+[2025-07-26 01:00:00,492] [WARNING] [None] [None] [None] [None] [database:30] SLOW QUERY: 0.192s - CREATE INDEX ix_activity_logs_ip_address ON activity_logs (ip_address)
+[2025-07-26 01:00:00,494] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] CREATE INDEX ix_activity_logs_user_id ON activity_logs (user_id)
+[2025-07-26 01:00:00,495] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [no key 0.00161s] ()
+[2025-07-26 01:00:00,687] [WARNING] [None] [None] [None] [None] [database:30] SLOW QUERY: 0.194s - CREATE INDEX ix_activity_logs_user_id ON activity_logs (user_id)
+[2025-07-26 01:00:00,689] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] CREATE INDEX ix_activity_logs_created_at ON activity_logs (created_at)
+[2025-07-26 01:00:00,690] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [no key 0.00123s] ()
+[2025-07-26 01:00:00,882] [WARNING] [None] [None] [None] [None] [database:30] SLOW QUERY: 0.193s - CREATE INDEX ix_activity_logs_created_at ON activity_logs (created_at)
+[2025-07-26 01:00:00,883] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] CREATE INDEX ix_activity_logs_activity_type ON activity_logs (activity_type)
+[2025-07-26 01:00:00,885] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [no key 0.00130s] ()
+[2025-07-26 01:00:01,080] [WARNING] [None] [None] [None] [None] [database:30] SLOW QUERY: 0.196s - CREATE INDEX ix_activity_logs_activity_type ON activity_logs (activity_type)
+[2025-07-26 01:00:01,081] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] CREATE INDEX idx_user_activity_time ON activity_logs (user_id, activity_type, created_at)
+[2025-07-26 01:00:01,082] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [no key 0.00131s] ()
+[2025-07-26 01:00:01,273] [WARNING] [None] [None] [None] [None] [database:30] SLOW QUERY: 0.192s - CREATE INDEX idx_user_activity_time ON activity_logs (user_id, activity_type, created_at)
+[2025-07-26 01:00:01,274] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] CREATE INDEX idx_activity_time ON activity_logs (activity_type, created_at)
+[2025-07-26 01:00:01,276] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [no key 0.00153s] ()
+[2025-07-26 01:00:01,468] [WARNING] [None] [None] [None] [None] [database:30] SLOW QUERY: 0.194s - CREATE INDEX idx_activity_time ON activity_logs (activity_type, created_at)
+[2025-07-26 01:00:01,469] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:2704] COMMIT
+[2025-07-26 01:00:01,471] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 01:00:01,512] [INFO] [None] [None] [None] [None] [werkzeug:187] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://12.10.4.199:5000
+[2025-07-26 01:00:01,512] [INFO] [None] [None] [None] [None] [werkzeug:187] [33mPress CTRL+C to quit[0m
+[2025-07-26 01:00:01,512] [INFO] [None] [None] [None] [None] [werkzeug:187]  * Restarting with stat
+[2025-07-26 01:00:02,046] [INFO] [None] [None] [None] [None] [app:146] Application started at 2025-07-26T01:00:02.046301
+[2025-07-26 01:00:02,072] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:2698] BEGIN (implicit)
+[2025-07-26 01:00:02,073] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] PRAGMA main.table_info("users")
+[2025-07-26 01:00:02,074] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [raw sql] ()
+[2025-07-26 01:00:02,075] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] PRAGMA main.table_info("scan_history")
+[2025-07-26 01:00:02,076] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [raw sql] ()
+[2025-07-26 01:00:02,077] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] PRAGMA main.table_info("user_settings")
+[2025-07-26 01:00:02,077] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [raw sql] ()
+[2025-07-26 01:00:02,078] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] PRAGMA main.table_info("activity_logs")
+[2025-07-26 01:00:02,078] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:1842] [raw sql] ()
+[2025-07-26 01:00:02,079] [INFO] [None] [None] [None] [None] [sqlalchemy.engine.Engine:2704] COMMIT
+[2025-07-26 01:00:02,079] [INFO] [None] [None] [None] [None] [database:62] Database tables created successfully
+[2025-07-26 01:00:02,081] [WARNING] [None] [None] [None] [None] [werkzeug:187]  * Debugger is active!
+[2025-07-26 01:00:02,083] [INFO] [None] [None] [None] [None] [werkzeug:187]  * Debugger PIN: 116-055-053
